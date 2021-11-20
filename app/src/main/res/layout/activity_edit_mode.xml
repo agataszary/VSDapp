@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.vsdapp.editMode.EditModeViewModel"/>
+    </data>
+
+<!--    <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        tools:context=".MainActivity">-->
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+<!--        <com.example.vsdapp.compose.TopNavBarView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            app:onBackClicked="@{() -> viewModel.onBackClicked()}"-->
+<!--            app:onRightClicked="@{() -> viewModel.onRightClicked()}"-->
+<!--            />-->
+        <androidx.compose.ui.platform.ComposeView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/composeTopNavBar" />
+<!--            app:layout_constraintTop_toTopOf="parent"-->
+<!--            />-->
+
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:id="@+id/relativeLayoutAtEditMode"
+            android:background="@color/light_gray"
+            android:layout_weight="1" >
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/selectedPictureAtEditMode"
+                android:visibility="@{viewModel.selectedPictureVisibilityData}"
+                android:src="@{viewModel.selectedPictureData}"
+                />
+
+        </RelativeLayout>
+<!--            app:layout_constraintTop_toBottomOf="@id/composeTopNavBar"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            />-->
+
+        <androidx.compose.ui.platform.ComposeView
+            android:layout_width="300dp"
+            android:layout_height="match_parent"
+            android:id="@+id/searchIconsColumn" />
+<!--            app:layout_constraintTop_toBottomOf="@id/composeTopNavBar"-->
+<!--            app:layout_constraintBottom_toBottomOf="parent"-->
+<!--            app:layout_constraintEnd_toEndOf="parent"-->
+<!--            />-->
+        </androidx.appcompat.widget.LinearLayoutCompat>
+
+<!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
+        </androidx.appcompat.widget.LinearLayoutCompat>
+</layout>

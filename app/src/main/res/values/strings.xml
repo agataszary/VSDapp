@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">VSDapp</string>
+    <string name="top_nav_bar_back_arrow_text">Powrót</string>
+    <string name="top_nav_bar_forward_arrow_text_read">Tryb odczytu</string>
+    <string name="top_nav_bar_forward_arrow_text_edit">Tryb edycji</string>
+    <string name="search_button_title">Szukaj</string>
+    <string name="change_background_picture">Wybierz zdjęcie</string>
+    <string name="save_button_title">Zapisz</string>
+    <string name="go_to_gallery_button">Galeria</string>
+    <string name="go_to_edit_mode_button">Edytor</string>
+</resources>
