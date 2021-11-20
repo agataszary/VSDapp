@@ -25,9 +25,11 @@ import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.models.GetIconsModel
 import com.example.vsdapp.views.PictogramDetails
 import com.example.vsdapp.views.PictogramView
+import com.example.vsdapp.views.ReadPictogramView
 import com.ortiz.touchview.TouchImageView
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.pictogram_view.view.*
+import kotlinx.android.synthetic.main.read_pictogram_view.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +44,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     private lateinit var sceneDao: SceneDao
     private lateinit var filesLocation: File
     private lateinit var mode: EditModeType
+    private lateinit var scene: Scene
 
     val searchInput = mutableStateOf("")
     val titleInput = mutableStateOf("")
@@ -68,18 +71,60 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
 
-    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Int?, imageLocation: String?) {
+    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Int?, imageLocation: Uri?, view: View, context: Context) {
         this.sceneDao = sceneDao
         this.filesLocation = filesLocation
         this.mode = mode
 
         if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null) {
-            setupUpdateMode()
+            setupUpdateMode(sceneId, imageLocation, view, context)
         }
     }
 
-    private fun setupUpdateMode() {
+    private fun setupUpdateMode(sceneId: Int, imageLocation: Uri, view: View, context: Context) {
+        viewModelScope.launch(Dispatchers.Main) {
 
+            selectedPictureMutableData.value = imageLocation
+            selectedPictureVisibilityMutableData.value = View.VISIBLE
+            searchButtonEnabledMutableFlow.value = true
+
+            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
+
+            titleInput.value = scene.imageName
+            showPictograms(view, context)
+        }
+    }
+
+    private fun showPictograms(view: View, context: Context) {
+        for (pictogram in scene.pictograms) {
+            val image = PictogramView(context)
+            val params = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+            params.setMargins(pictogram.x, pictogram.y, 0, 0)
+            image.layoutParams = params
+
+            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.imageAtPictogramView)
+
+            image.setDetails(PictogramView.Data(id = imageId, imageUrl = pictogram.imageUrl))
+            image.label.setText(pictogram.label)
+            image.setDeleteButtonListener { deleteImage(it) }
+            image.setLabelEditTextListener { id, label ->
+                updateImageInfo(id, label)
+            }
+            image.setupMoveView{ id, newX, newY ->
+                updateImageInfo(id = id, x = newX, y = newY)
+            }
+
+            (view as ViewGroup).addView(image)
+
+            iconsOnPicture[imageId] = PictogramDetails(
+                imageUrl = pictogram.imageUrl,
+                x = pictogram.x,
+                y = pictogram.y,
+                label = image.label.text.toString()
+            )
+
+            imageId += 1
+        }
     }
 
     fun onBackClicked() {
@@ -87,7 +132,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     }
 
     fun onRightClicked() {
-
+        sendEvent(CloseActivity)
     }
 
     fun onSearchStringChanged(newSearch: String? = null) {
@@ -121,25 +166,36 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
     fun onSaveButtonClicked() {
         viewModelScope.launch(Dispatchers.Main) {
-            var counter = 0
-            val locations = withContext(Dispatchers.IO) { sceneDao.getAll().map { it.imageLocation } }
-            var imageLocation = titleInput.value
-            while (locations.contains("$imageLocation.jpg")) {
-                imageLocation.dropLast(1)
-                imageLocation += counter.toString()
-                counter += 1
+            if (mode == EditModeType.CREATE_MODE) {
+                var counter = 0
+                val locations = withContext(Dispatchers.IO) { sceneDao.getAll().map { it.imageLocation } }
+                var imageLocation = titleInput.value.replace("\\s+".toRegex(), "_")
+
+                while (locations.contains("$imageLocation.jpg")) {
+                    imageLocation.dropLast(1)
+                    imageLocation += counter.toString()
+                    counter += 1
+                }
+
+                imageLocation += ".jpg"
+
+                val scene = Scene(
+                    imageName = titleInput.value,
+                    imageLocation = imageLocation,
+                    pictograms = iconsOnPicture.values.toList()
+                )
+
+                withContext(Dispatchers.IO) { sceneDao.insert(scene) }
+                sendEvent(SaveImageToInternalStorage(imageLocation, selectedPictureBitmap!!))
+            } else {
+                val sceneToUpdate = Scene(
+                    id = scene.id,
+                    imageName = titleInput.value,
+                    imageLocation = scene.imageLocation,
+                    pictograms = iconsOnPicture.values.toList()
+                )
+                withContext(Dispatchers.IO) { sceneDao.update(sceneToUpdate) }
             }
-            imageLocation += ".jpg"
-            val scene = Scene(
-                imageName = titleInput.value,
-                imageLocation = imageLocation,
-                pictograms = iconsOnPicture.values.toList()
-            )
-            selectedPictureMutableData.value
-            withContext(Dispatchers.IO) {
-                sceneDao.insert(scene)
-            }
-            sendEvent(SaveImageToInternalStorage(imageLocation, selectedPictureBitmap!!))
         }
     }
 

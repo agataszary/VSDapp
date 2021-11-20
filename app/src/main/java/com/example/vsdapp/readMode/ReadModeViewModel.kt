@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.core.view.children
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,7 @@ import com.example.vsdapp.core.Constants
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
+import com.example.vsdapp.views.PictogramView
 import com.example.vsdapp.views.ReadPictogramView
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.pictogram_view.view.*
@@ -33,18 +35,33 @@ class ReadModeViewModel: BaseViewModel() {
     val selectedPictureData: LiveData<Uri> = selectedPictureMutableData
 
     private lateinit var scene: Scene
+    private var sceneId = 0
     private lateinit var sceneDao: SceneDao
     private lateinit var tts: TextToSpeech
 
     fun initialData(sceneId: Int, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
         this.sceneDao = db
-        viewModelScope.launch(Dispatchers.Main){
-            scene = withContext(Dispatchers.IO){ sceneDao.getSceneById(sceneId) }
-            if (photoUri != null){
-                selectedPictureMutableData.value = photoUri
-                selectedPictureVisibilityMutableData.value = View.VISIBLE
+        this.tts = textToSpeech
+        this.sceneId = sceneId
+
+        if (photoUri != null){
+            selectedPictureMutableData.value = photoUri
+            selectedPictureVisibilityMutableData.value = View.VISIBLE
+        }
+
+        loadData(view, context)
+    }
+
+    fun loadData(view: View, context: Context) {
+        viewModelScope.launch(Dispatchers.Main) {
+            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
+
+            (view as ViewGroup).children.forEach { v ->
+                if (v is PictogramView) {
+                    view.removeView(v)
+                }
             }
-            tts = textToSpeech
+
             showPictograms(view, context)
         }
     }

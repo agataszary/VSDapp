@@ -57,7 +57,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
             db = db.sceneDao,
             photoUri = loadPhotoFromInternalStorage(imageLocation),
             view = binding.relativeLayoutAtReadMode,
-            context = applicationContext,
+            context = this,
             textToSpeech = tts
         )
 
@@ -74,7 +74,11 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
                 rightButtonVisibility = true
             )
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadData(binding.relativeLayoutAtReadMode, this)
     }
 
     override fun onInit(status: Int) {

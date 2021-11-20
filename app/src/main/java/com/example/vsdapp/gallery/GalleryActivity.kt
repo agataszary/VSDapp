@@ -59,7 +59,7 @@ class GalleryActivity: AppCompatActivity(){
         db = AppDatabase.getInstance(this)
 
         viewModel = GalleryViewModel()
-        viewModel.loadData(db.sceneDao)
+        viewModel.setInitialData(db.sceneDao)
 
         setContent {
             GalleryScreen(
@@ -73,6 +73,11 @@ class GalleryActivity: AppCompatActivity(){
         }
 
         setupEventsObserver()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadData()
     }
 
     private fun setupEventsObserver() {

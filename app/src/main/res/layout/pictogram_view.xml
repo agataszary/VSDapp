@@ -26,6 +26,8 @@
         android:id="@+id/imageAtPictogramView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingStart="@dimen/margin_small"
+        android:paddingEnd="@dimen/margin_small"
         tools:src="@mipmap/ic_launcher"
         />
 
@@ -33,7 +35,7 @@
         android:id="@+id/pictogramTitleAtPictogramView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:inputType="text"
+        android:inputType="textMultiLine"
         android:textAlignment="center"
         android:textSize="@dimen/text_size"
         />

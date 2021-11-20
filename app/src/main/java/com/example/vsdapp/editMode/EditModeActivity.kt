@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -17,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
 import androidx.core.graphics.drawable.toIcon
+import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import com.example.vsdapp.R
@@ -82,8 +84,17 @@ class EditModeActivity : AppCompatActivity() {
         val mode = intent.getSerializableExtra(Constants.EDIT_MODE_TYPE) as EditModeType
         val sceneId = intent.getIntExtra(Constants.INTENT_SCENE, 0)
         val imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)
+        val imageUri = if(imageLocation != null) loadPhotoFromInternalStorage(imageLocation) else null
 
-        viewModel.setInitialData(db.sceneDao, filesDir)
+        viewModel.setInitialData(
+            sceneDao = db.sceneDao,
+            filesLocation = filesDir,
+            mode = mode,
+            sceneId = sceneId,
+            imageLocation =  imageUri,
+            view = binding.relativeLayoutAtEditMode,
+            context = this
+        )
 
         binding.composeTopNavBar.setContent {
             if (mode == EditModeType.CREATE_MODE) {
@@ -150,7 +161,7 @@ class EditModeActivity : AppCompatActivity() {
     @SuppressLint("ClickableViewAccessibility")
     private fun setupTouchListener() {
         binding.relativeLayoutAtEditMode.setOnTouchListener { view, event ->
-            viewModel.placeViewOnTouch(view, event, applicationContext)
+            viewModel.placeViewOnTouch(view, event, this)
             true
         }
     }
@@ -179,6 +190,17 @@ class EditModeActivity : AppCompatActivity() {
             }
         } catch (e: IOException) {
             e.printStackTrace()
+        }
+    }
+
+    private  fun loadPhotoFromInternalStorage(filename: String): Uri? {
+        val files = filesDir.listFiles { file ->
+            file.canRead() && file.isFile && file.name == filename
+        }
+        return if (files != null && files.size == 1) {
+            files[0].toUri()
+        } else {
+            null
         }
     }
 }

@@ -22,12 +22,14 @@ class GalleryViewModel: BaseViewModel() {
     private val scenesListMutableFlow = MutableStateFlow<List<Scene>>(listOf())
     val scenesListFlow: StateFlow<List<Scene>> = scenesListMutableFlow
 
-    fun loadData(sceneDao: SceneDao) {
+    fun setInitialData(sceneDao: SceneDao) {
         this.sceneDao = sceneDao
+        loadData()
+    }
 
+    fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO){ scenesListMutableFlow.value = sceneDao.getAll() }
-            println(scenesListMutableFlow.value)
         }
     }
 
