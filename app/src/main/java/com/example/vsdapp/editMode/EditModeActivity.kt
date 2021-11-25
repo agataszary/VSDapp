@@ -2,6 +2,8 @@ package com.example.vsdapp.editMode
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipDescription
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
@@ -12,6 +14,11 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.view.DragEvent
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.RelativeLayout
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
@@ -28,6 +35,7 @@ import com.example.vsdapp.core.*
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.databinding.ActivityEditModeBinding
+import com.example.vsdapp.views.PictogramView
 import pl.aprilapps.easyphotopicker.ChooserType
 import pl.aprilapps.easyphotopicker.DefaultCallback
 import pl.aprilapps.easyphotopicker.EasyImage
@@ -98,6 +106,9 @@ class EditModeActivity : AppCompatActivity() {
 
         binding.composeTopNavBar.setContent {
             if (mode == EditModeType.CREATE_MODE) {
+
+                val rightButtonVisibility: Boolean by viewModel.rightButtonVisibilityState.collectAsState()
+
                 TopNavBar(
                     onBackClicked = { viewModel.onBackClicked() },
                     onRightClicked = { viewModel.onRightClicked() },
@@ -108,7 +119,7 @@ class EditModeActivity : AppCompatActivity() {
                     rightText = stringResource(id = R.string.top_nav_bar_forward_arrow_text_read),
                     searchFieldVisibility = true,
                     leftButtonVisibility = true,
-                    rightButtonVisibility = true
+                    rightButtonVisibility = rightButtonVisibility
                 )
             } else {
                 TopNavBar(
@@ -162,6 +173,62 @@ class EditModeActivity : AppCompatActivity() {
     private fun setupTouchListener() {
         binding.relativeLayoutAtEditMode.setOnTouchListener { view, event ->
             viewModel.placeViewOnTouch(view, event, this)
+            true
+        }
+
+        binding.relativeLayoutAtEditMode.setOnDragListener { v, event ->
+            val params = RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+            )
+            when (event.action) {
+                DragEvent.ACTION_DRAG_STARTED -> {
+                    event.clipDescription.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                }
+                DragEvent.ACTION_DRAG_ENTERED -> {
+                    v.invalidate()
+                    true
+                }
+                DragEvent.ACTION_DRAG_LOCATION -> {
+                    true
+                }
+                DragEvent.ACTION_DRAG_EXITED -> {
+                    val x = event.x.toInt()
+                    val y = event.y.toInt()
+
+                    params.setMargins(x, y, 0, 0)
+
+                    true
+                }
+                DragEvent.ACTION_DROP -> {
+                    val item: ClipData.Item = event.clipData.getItemAt(0)
+
+                    val x = event.x.toInt() - Constants.IMAGE_SIZE/2
+                    val y = event.y.toInt() - Constants.IMAGE_SIZE/2
+
+                    params.setMargins(x, y, 0, 0)
+                    val view = event.localState as PictogramView
+                    view.layoutParams = params
+
+                    viewModel.updateImageInfo(id = view.pictogramData.id, x = x, y = y)
+
+                    view.visibility = View.VISIBLE
+                    true
+                }
+                DragEvent.ACTION_DRAG_ENDED -> {
+                    when(event.result) {
+                        true ->
+                            Toast.makeText(this, "The drop was handled.", Toast.LENGTH_LONG)
+                        else ->
+                            Toast.makeText(this, "The drop didn't work.", Toast.LENGTH_LONG)
+                    }.show()
+                    true
+                }
+                else -> {
+                    Log.e("DragDrop Example", "Unknown action type received by OnDragListener.")
+                    false
+                }
+            }
             true
         }
     }

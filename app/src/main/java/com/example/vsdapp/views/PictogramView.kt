@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Context
+import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
@@ -14,6 +15,7 @@ import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.view.MotionEventCompat
 import androidx.databinding.BindingAdapter
@@ -45,6 +47,25 @@ class PictogramView: LinearLayout {
 
     private fun initialSetup(context: Context) {
         View.inflate(context, R.layout.pictogram_view, this)
+        this.setOnLongClickListener { v ->
+            val item = ClipData.Item(v.tag as? CharSequence)
+            val dragData = ClipData(
+                v.tag as? CharSequence,
+                arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
+                item)
+
+            val myShadow = DragShadowBuilder(this)
+
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                v.startDragAndDrop(dragData, myShadow, v, 0)
+            } else {
+                v.startDrag(dragData, myShadow, v, 0)
+            }
+
+            v.visibility = View.INVISIBLE
+            true
+        }
     }
 
     fun setDeleteButtonListener(method: ((Int) -> Unit)?) {
@@ -75,44 +96,5 @@ class PictogramView: LinearLayout {
             }
 
         })
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    fun setupMoveView(method: ((Int, Int, Int) -> Unit)?) {
-        linearLayoutAtPictogramView.setOnDragListener { v, event ->
-            when (event.action) {
-                DragEvent.ACTION_DRAG_STARTED -> {
-                    event.clipDescription.hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                }
-                DragEvent.ACTION_DRAG_ENTERED -> {
-                    true
-                }
-                DragEvent.ACTION_DRAG_LOCATION -> {
-                    true
-                }
-                DragEvent.ACTION_DRAG_EXITED -> {
-                    true
-                }
-                DragEvent.ACTION_DROP -> {
-                    val item: ClipData.Item = event.clipData.getItemAt(0)
-                    true
-                }
-                DragEvent.ACTION_DRAG_ENDED -> {
-                    when(event.result) {
-                        true ->
-                            Toast.makeText(context, "The drop was handled.", Toast.LENGTH_LONG)
-                        else ->
-                            Toast.makeText(context, "The drop didn't work.", Toast.LENGTH_LONG)
-                    }.show()
-                    true
-                }
-                else -> {
-                    Log.e("DragDrop Example", "Unknown action type received by OnDragListener.")
-                    false
-                }
-            }
-
-            true
-        }
     }
 }

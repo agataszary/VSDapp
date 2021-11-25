@@ -57,7 +57,9 @@ class ReadModeViewModel: BaseViewModel() {
             scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
 
             (view as ViewGroup).children.forEach { v ->
-                if (v is PictogramView) {
+                println("child ${v.javaClass.name}")
+                if (v is ReadPictogramView) {
+                    println("remove")
                     view.removeView(v)
                 }
             }

@@ -66,6 +66,9 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     private val searchButtonEnabledMutableFlow = MutableStateFlow(false)
     val searchButtonEnabledFlow: StateFlow<Boolean> = searchButtonEnabledMutableFlow
 
+    private val rightButtonVisibilityMutableFlow = MutableStateFlow(false)
+    val rightButtonVisibilityState: StateFlow<Boolean> = rightButtonVisibilityMutableFlow
+
     private var imageId = 0
     private var selectedPictureBitmap: Bitmap? = null
 
@@ -92,6 +95,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
             titleInput.value = scene.imageName
             showPictograms(view, context)
+            sendEvent(SetupTouchListener)
         }
     }
 
@@ -109,9 +113,6 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             image.setDeleteButtonListener { deleteImage(it) }
             image.setLabelEditTextListener { id, label ->
                 updateImageInfo(id, label)
-            }
-            image.setupMoveView{ id, newX, newY ->
-                updateImageInfo(id = id, x = newX, y = newY)
             }
 
             (view as ViewGroup).addView(image)
@@ -187,6 +188,8 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
                 withContext(Dispatchers.IO) { sceneDao.insert(scene) }
                 sendEvent(SaveImageToInternalStorage(imageLocation, selectedPictureBitmap!!))
+
+                rightButtonVisibilityMutableFlow.value = true
             } else {
                 val sceneToUpdate = Scene(
                     id = scene.id,
@@ -216,7 +219,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
         iconsOnPicture.remove(id)
     }
 
-    private fun updateImageInfo(id: Int, label: String? = null, x: Int? = null, y: Int? = null) {
+    fun updateImageInfo(id: Int, label: String? = null, x: Int? = null, y: Int? = null) {
         if (label != null) {
             iconsOnPicture[id]?.label = label
         }
@@ -245,9 +248,6 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             image.setDeleteButtonListener { deleteImage(it) }
             image.setLabelEditTextListener { id, label ->
                 updateImageInfo(id, label)
-            }
-            image.setupMoveView{ id, newX, newY ->
-                updateImageInfo(id = id, x = newX, y = newY)
             }
 
             (view as ViewGroup).addView(image)
