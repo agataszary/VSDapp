@@ -34,6 +34,7 @@
 <!--            />-->
 
         <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/horizontalLinearLayoutAtEditMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
@@ -60,7 +61,7 @@
 <!--            />-->
 
         <androidx.compose.ui.platform.ComposeView
-            android:layout_width="300dp"
+            android:layout_width="@dimen/search_column_width"
             android:layout_height="match_parent"
             android:id="@+id/searchIconsColumn" />
 <!--            app:layout_constraintTop_toBottomOf="@id/composeTopNavBar"-->

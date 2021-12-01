@@ -62,13 +62,22 @@ class EditModeActivity : AppCompatActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             val intent = result.data
             viewModel.changeBackgroundPicture(intent?.data)
-            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(contentResolver, intent?.data!!)
-                ImageDecoder.decodeBitmap(source)
-            } else {
-                MediaStore.Images.Media.getBitmap(contentResolver, intent?.data!!)
-            }
-            viewModel.saveBitmap(bitmap)
+            val bitmap = uriToBitmap(intent?.data!!)
+            viewModel.saveBitmap(
+                bitmap = bitmap,
+                editAreaWidth = binding.relativeLayoutAtEditMode.width.toFloat(),
+                editAreaHeight = binding.relativeLayoutAtEditMode.height.toFloat(),
+                readAreaWidth = binding.horizontalLinearLayoutAtEditMode.width.toFloat(),
+                readAreaHeight = binding.horizontalLinearLayoutAtEditMode.height.toFloat(),
+            )
+//            println("width: ${bitmap.width}")
+//            println("height: ${bitmap.height}")
+//            println("aspect ratio: ${bitmap.width.toFloat()/bitmap.height.toFloat()}")
+//            println("area width: ${binding.relativeLayoutAtEditMode.width}")
+//            println("area height: ${binding.relativeLayoutAtEditMode.height}")
+//            println("area aspect ratio: ${binding.relativeLayoutAtEditMode.width.toFloat()/binding.relativeLayoutAtEditMode.height.toFloat()}")
+//            println("read mode area width: ${binding.horizontalLinearLayoutAtEditMode.width} height: ${binding.horizontalLinearLayoutAtEditMode.height}")
+//            println("read mode aspect ratio: ${binding.horizontalLinearLayoutAtEditMode.width.toFloat()/binding.horizontalLinearLayoutAtEditMode.height.toFloat()}")
         }
     }
 
@@ -101,7 +110,8 @@ class EditModeActivity : AppCompatActivity() {
             sceneId = sceneId,
             imageLocation =  imageUri,
             view = binding.relativeLayoutAtEditMode,
-            context = this
+            context = this,
+            bitmap = if (mode == EditModeType.UPDATE_MODE && imageUri != null) uriToBitmap(imageUri) else null
         )
 
         binding.composeTopNavBar.setContent {
@@ -163,10 +173,28 @@ class EditModeActivity : AppCompatActivity() {
             when (val payload = event.getContent()) {
                 is RequestOpenGallery -> getPictureFromGallery()
                 is SetupTouchListener -> setupTouchListener()
-                is CloseActivity -> finish()
+                is SetupTouchListenerAndGetARDetails -> setupUpdateMode()
+                is CloseActivity -> {
+                    setResult(Activity.RESULT_CANCELED)
+                    finish()
+                }
+                is CloseWithOkResult -> {
+                    setResult(Activity.RESULT_OK)
+                    finish()
+                }
                 is SaveImageToInternalStorage -> saveImageToInternalStorage(payload.fileLocation, payload.bitmap)
             }
         })
+    }
+
+    private fun setupUpdateMode() {
+        setupTouchListener()
+        viewModel.setAspectRatioDetails(
+            editAreaWidth = binding.relativeLayoutAtEditMode.width.toFloat(),
+            editAreaHeight = binding.relativeLayoutAtEditMode.height.toFloat(),
+            readAreaWidth = binding.horizontalLinearLayoutAtEditMode.width.toFloat(),
+            readAreaHeight = binding.horizontalLinearLayoutAtEditMode.height.toFloat()
+        )
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -269,5 +297,16 @@ class EditModeActivity : AppCompatActivity() {
         } else {
             null
         }
+    }
+
+    private fun uriToBitmap(photoUri: Uri): Bitmap {
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(contentResolver, photoUri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            MediaStore.Images.Media.getBitmap(contentResolver, photoUri)
+        }
+
+        return bitmap
     }
 }

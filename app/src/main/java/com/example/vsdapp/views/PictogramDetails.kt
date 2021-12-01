@@ -8,5 +8,7 @@ data class PictogramDetails(
     val imageUrl: String,
     var x: Int,
     var y: Int,
-    var label: String
+    var label: String,
+    var xRead: Int? = null,
+    var yRead: Int? = null
 ): Parcelable

@@ -1,6 +1,5 @@
 package com.example.vsdapp.views
 
-import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.Context
@@ -8,17 +7,9 @@ import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
-import android.util.Log
-import android.view.DragEvent
-import android.view.MotionEvent
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
-import android.widget.Toast
-import androidx.core.view.MotionEventCompat
-import androidx.databinding.BindingAdapter
 import com.example.vsdapp.R
 import kotlinx.android.synthetic.main.pictogram_view.view.*
 

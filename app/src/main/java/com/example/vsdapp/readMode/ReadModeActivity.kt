@@ -2,13 +2,11 @@ package com.example.vsdapp.readMode
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
@@ -17,7 +15,6 @@ import com.example.vsdapp.R
 import com.example.vsdapp.compose.TopNavBar
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.database.AppDatabase
-import com.example.vsdapp.database.Scene
 import com.example.vsdapp.databinding.ActivityReadModeBinding
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
@@ -37,6 +34,15 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     lateinit var viewModel: ReadModeViewModel
     private lateinit var binding: ActivityReadModeBinding
     lateinit var tts: TextToSpeech
+    lateinit var imageLocation: String
+    var scene = 0
+
+    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            finish()
+            ReadModeActivity.start(this, scene, imageLocation)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,8 +54,8 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        val scene = intent.getIntExtra(Constants.INTENT_SCENE, 0)
-        val imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
+        scene = intent.getIntExtra(Constants.INTENT_SCENE, 0)
+        imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
         val db = AppDatabase.getInstance(this)
 
         viewModel.initialData(
@@ -76,10 +82,10 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.loadData(binding.relativeLayoutAtReadMode, this)
-    }
+//    override fun onResume() {
+//        super.onResume()
+//        viewModel.loadData(binding.relativeLayoutAtReadMode, this)
+//    }
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
@@ -106,7 +112,13 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun openEditModeScreen(sceneId: Int, imageLocation: String) {
-        EditModeActivity.start(this, EditModeType.UPDATE_MODE, sceneId, imageLocation)
+//        EditModeActivity.start(this, EditModeType.UPDATE_MODE, sceneId, imageLocation)
+        val intent = Intent(this, EditModeActivity::class.java)
+            .putExtra(Constants.EDIT_MODE_TYPE, EditModeType.UPDATE_MODE)
+            .putExtra(Constants.INTENT_SCENE, sceneId)
+            .putExtra(Constants.IMAGE_LOCATION, imageLocation)
+
+        startForResult.launch(intent)
     }
 
     public override fun onDestroy() {

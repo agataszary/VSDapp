@@ -49,7 +49,21 @@ class ReadModeViewModel: BaseViewModel() {
             selectedPictureVisibilityMutableData.value = View.VISIBLE
         }
 
-        loadData(view, context)
+        viewModelScope.launch(Dispatchers.Main) {
+            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
+
+//            (view as ViewGroup).children.forEach { v ->
+//                println("child ${v.javaClass.name}")
+//                if (v is ReadPictogramView) {
+//                    println("remove")
+//                    view.removeView(v)
+//                }
+//            }
+
+            showPictograms(view, context)
+        }
+
+//        loadData(view, context)
     }
 
     fun loadData(view: View, context: Context) {
@@ -72,7 +86,7 @@ class ReadModeViewModel: BaseViewModel() {
         for (pictogram in scene.pictograms) {
             val image = ReadPictogramView(context)
             val params = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
-            params.setMargins(pictogram.x, pictogram.y, 0, 0)
+            params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params
 
             Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.imageAtReadPictogramView)

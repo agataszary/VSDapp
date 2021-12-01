@@ -2,4 +2,5 @@
 <resources>
     <dimen name="margin_small">8dp</dimen>
     <dimen name="text_size">12sp</dimen>
+    <dimen name="search_column_width">300dp</dimen>
 </resources>

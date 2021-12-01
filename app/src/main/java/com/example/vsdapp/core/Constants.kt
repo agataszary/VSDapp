@@ -9,5 +9,6 @@ class Constants {
         const val INTENT_SCENE = "intent_scene"
         const val IMAGE_LOCATION = "image_location"
         const val EDIT_MODE_TYPE = "edit_mode_type"
+        const val SEARCH_COLUMN_WIDTH = 300
     }
 }

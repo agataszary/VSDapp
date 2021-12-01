@@ -2,7 +2,10 @@ package com.example.vsdapp.editMode
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +13,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toFile
 import androidx.core.view.updateLayoutParams
@@ -71,20 +75,23 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
     private var imageId = 0
     private var selectedPictureBitmap: Bitmap? = null
+    private lateinit var bitmapDetails: AspectRatioDetails
+    private lateinit var editModeAreaDetails: AspectRatioDetails
+    private lateinit var readModeAreaDetails: AspectRatioDetails
 
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
 
-    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Int?, imageLocation: Uri?, view: View, context: Context) {
+    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Int?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
         this.sceneDao = sceneDao
         this.filesLocation = filesLocation
         this.mode = mode
 
-        if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null) {
-            setupUpdateMode(sceneId, imageLocation, view, context)
+        if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null && bitmap != null) {
+            setupUpdateMode(sceneId, imageLocation, view, context, bitmap)
         }
     }
 
-    private fun setupUpdateMode(sceneId: Int, imageLocation: Uri, view: View, context: Context) {
+    private fun setupUpdateMode(sceneId: Int, imageLocation: Uri, view: View, context: Context, bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.Main) {
 
             selectedPictureMutableData.value = imageLocation
@@ -95,7 +102,14 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
             titleInput.value = scene.imageName
             showPictograms(view, context)
-            sendEvent(SetupTouchListener)
+
+            bitmapDetails = AspectRatioDetails(
+                width = bitmap.width.toFloat(),
+                height = bitmap.height.toFloat(),
+                aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+            )
+
+            sendEvent(SetupTouchListenerAndGetARDetails)
         }
     }
 
@@ -133,7 +147,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     }
 
     fun onRightClicked() {
-        sendEvent(CloseActivity)
+        sendEvent(CloseWithOkResult)
     }
 
     fun onSearchStringChanged(newSearch: String? = null) {
@@ -210,8 +224,30 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
         }
     }
 
-    fun saveBitmap(bitmap: Bitmap) {
+    fun saveBitmap(bitmap: Bitmap, editAreaWidth: Float, editAreaHeight: Float, readAreaWidth: Float, readAreaHeight: Float) {
         selectedPictureBitmap = bitmap
+
+        bitmapDetails = AspectRatioDetails(
+            width = bitmap.width.toFloat(),
+            height = bitmap.height.toFloat(),
+            aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+        )
+
+        setAspectRatioDetails(editAreaWidth, editAreaHeight, readAreaWidth, readAreaHeight)
+    }
+
+    fun setAspectRatioDetails(editAreaWidth: Float, editAreaHeight: Float, readAreaWidth: Float, readAreaHeight: Float) {
+        editModeAreaDetails = AspectRatioDetails(
+            width = editAreaWidth,
+            height = editAreaHeight,
+            aspectRatio = editAreaWidth / editAreaHeight
+        )
+
+        readModeAreaDetails = AspectRatioDetails(
+            width = readAreaWidth,
+            height = readAreaHeight,
+            aspectRatio = readAreaWidth / readAreaHeight
+        )
     }
 
     private fun deleteImage(id: Int) {
@@ -223,11 +259,10 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
         if (label != null) {
             iconsOnPicture[id]?.label = label
         }
-        if (x != null) {
+        if (x != null && y != null && iconsOnPicture[id] != null) {
             iconsOnPicture[id]?.x = x
-        }
-        if (y != null) {
             iconsOnPicture[id]?.y = y
+            iconsOnPicture[id] = calculateCoordinates(iconsOnPicture[id]!!)
         }
     }
 
@@ -252,14 +287,58 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
             (view as ViewGroup).addView(image)
 
-            iconsOnPicture[imageId] = PictogramDetails(
+            val pictogram = calculateCoordinates(PictogramDetails(
                 imageUrl = imageUrl,
                 x = x,
                 y = y,
                 label = image.label.text.toString()
-            )
+            ))
+
+            iconsOnPicture[imageId] = pictogram
 
             imageId += 1
         }
+    }
+
+    private fun calculateCoordinates(pictogramDetails: PictogramDetails): PictogramDetails {
+
+//        println("width: ${bitmapDetails.width}")
+//        println("height: ${bitmapDetails.height}")
+//        println("aspect ratio: ${bitmapDetails.aspectRatio}")
+//        println("area width: ${editModeAreaDetails.width}")
+//        println("area height: ${editModeAreaDetails.height}")
+//        println("area aspect ratio: ${editModeAreaDetails.aspectRatio}")
+//        println("read mode area width: ${readModeAreaDetails.width} height: ${readModeAreaDetails.height}")
+//        println("read mode aspect ratio: ${readModeAreaDetails.aspectRatio}")
+
+        val pictogram = pictogramDetails.copy()
+        if (bitmapDetails.aspectRatio > editModeAreaDetails.aspectRatio) {
+            val photoW = editModeAreaDetails.width
+            val photoH = photoW * bitmapDetails.height / bitmapDetails.width
+
+            val yOffset = (editModeAreaDetails.height - photoH) / 2
+            pictogram.yRead = pictogram.y - yOffset.toInt()
+
+            if (bitmapDetails.aspectRatio < readModeAreaDetails.aspectRatio) {
+                val largePhotoH = readModeAreaDetails.height
+                val largePhotoW = largePhotoH * bitmapDetails.width / bitmapDetails.height
+
+                val xOffset = (readModeAreaDetails.width - largePhotoW) / 2
+                pictogram.xRead = pictogram.x + xOffset.toInt()
+            }
+
+        } else if (bitmapDetails.aspectRatio < editModeAreaDetails.aspectRatio) {
+            val photoH = editModeAreaDetails.height
+            val photoW = photoH * bitmapDetails.width / bitmapDetails.height
+
+            val xOffset = Constants.SEARCH_COLUMN_WIDTH
+//            val xOffset = 50
+            pictogram.xRead = pictogram.x + xOffset
+            pictogram.yRead = pictogram.y
+        }
+
+
+
+        return pictogram
     }
 }
