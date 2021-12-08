@@ -135,7 +135,9 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
                 imageUrl = pictogram.imageUrl,
                 x = pictogram.x,
                 y = pictogram.y,
-                label = image.label.text.toString()
+                label = image.label.text.toString(),
+                xRead = pictogram.xRead,
+                yRead = pictogram.yRead
             )
 
             imageId += 1
@@ -317,6 +319,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             val photoH = photoW * bitmapDetails.height / bitmapDetails.width
 
             val yOffset = (editModeAreaDetails.height - photoH) / 2
+//            pictogram.yRead = if(pictogram.y <= (editModeAreaDetails.height / 2)) pictogram.y - yOffset.toInt() else pictogram.y + yOffset.toInt()
             pictogram.yRead = pictogram.y - yOffset.toInt()
 
             if (bitmapDetails.aspectRatio < readModeAreaDetails.aspectRatio) {
@@ -325,6 +328,11 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
                 val xOffset = (readModeAreaDetails.width - largePhotoW) / 2
                 pictogram.xRead = pictogram.x + xOffset.toInt()
+
+                val scale = largePhotoH / photoH
+
+                pictogram.xRead = (pictogram.xRead!! * scale).toInt()
+                pictogram.yRead = (pictogram.yRead!! * scale).toInt()
             }
 
         } else if (bitmapDetails.aspectRatio < editModeAreaDetails.aspectRatio) {
@@ -332,7 +340,6 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             val photoW = photoH * bitmapDetails.width / bitmapDetails.height
 
             val xOffset = Constants.SEARCH_COLUMN_WIDTH
-//            val xOffset = 50
             pictogram.xRead = pictogram.x + xOffset
             pictogram.yRead = pictogram.y
         }

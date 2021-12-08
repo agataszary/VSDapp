@@ -244,12 +244,12 @@ class EditModeActivity : AppCompatActivity() {
                     true
                 }
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    when(event.result) {
-                        true ->
-                            Toast.makeText(this, "The drop was handled.", Toast.LENGTH_LONG)
-                        else ->
-                            Toast.makeText(this, "The drop didn't work.", Toast.LENGTH_LONG)
-                    }.show()
+//                    when(event.result) {
+//                        true ->
+//                            Toast.makeText(this, "The drop was handled.", Toast.LENGTH_LONG)
+//                        else ->
+//                            Toast.makeText(this, "The drop didn't work.", Toast.LENGTH_LONG)
+//                    }.show()
                     true
                 }
                 else -> {
