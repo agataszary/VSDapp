@@ -1,7 +1,5 @@
 package com.example.vsdapp.compose
 
-import android.content.Context
-import android.util.AttributeSet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -11,20 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.core.content.withStyledAttributes
 import com.example.vsdapp.R
 
 @Composable
@@ -57,9 +48,6 @@ fun TopNavBar(
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
                         }
-//                    .onGloballyPositioned { coordinates ->
-//                        println("!!!!!!!!!!!!!!!!!!!!! ${coordinates.positionInParent()}")
-//                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
@@ -75,9 +63,6 @@ fun TopNavBar(
                             start.linkTo(backButton.end)
                         }
                         .clickable(enabled = true, onClick = onBackClicked)
-//                    .onGloballyPositioned { coordinates ->
-//                        println("!!!!!!!!!!!!!!!!!!!!! ${coordinates.positionInParent()}")
-//                    }
                 )
             }
             if (searchFieldVisibility && title != null && onSaveButtonClicked != null) {
@@ -125,9 +110,6 @@ fun TopNavBar(
                             end.linkTo(rightButton.start)
                         }
                         .clickable(enabled = true, onClick = onRightClicked)
-//                    .onGloballyPositioned { coordinates ->
-//                        println("!!!!!!!!!!!!!!!!!!!!! ${coordinates.positionInParent()}")
-//                    }
                 )
                 IconButton(
                     onClick = onRightClicked,
@@ -137,9 +119,6 @@ fun TopNavBar(
                             bottom.linkTo(parent.bottom)
                             end.linkTo(parent.end)
                         }
-//                    .onGloballyPositioned { coordinates ->
-//                        println("!!!!!!!!!!!!!!!!!!!!! ${coordinates.positionInParent()}")
-//                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowForward,
@@ -179,26 +158,4 @@ fun TopNavBarPreview() {
         rightButtonVisibility = true
     )
 }
-
-//class TopNavBarView @JvmOverloads constructor(
-//    context: Context,
-//    attrs: AttributeSet? = null,
-//    defStyle: Int = 0
-//): AbstractComposeView(context, attrs, defStyle) {
-//
-//    var onBackClicked by mutableStateOf({ })
-//    var onRightClicked by mutableStateOf({ })
-//
-//    init {
-//        context.withStyledAttributes(attrs, R.styleable.TopNavBarView) {
-//            onBackClicked = { getString(R.styleable.TopNavBarView_onBackClicked).toString() }
-//            onRightClicked = { getString(R.styleable.TopNavBarView_onRightClicked).toString() }
-//        }
-//    }
-//
-//    @Composable
-//    override fun Content() {
-//        TopNavBar(onBackClicked = onBackClicked, onRightClicked = onRightClicked)
-//    }
-//}
 

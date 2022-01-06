@@ -52,34 +52,9 @@ class ReadModeViewModel: BaseViewModel() {
         viewModelScope.launch(Dispatchers.Main) {
             scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
 
-//            (view as ViewGroup).children.forEach { v ->
-//                println("child ${v.javaClass.name}")
-//                if (v is ReadPictogramView) {
-//                    println("remove")
-//                    view.removeView(v)
-//                }
-//            }
-
             showPictograms(view, context)
         }
 
-//        loadData(view, context)
-    }
-
-    fun loadData(view: View, context: Context) {
-        viewModelScope.launch(Dispatchers.Main) {
-            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
-
-            (view as ViewGroup).children.forEach { v ->
-                println("child ${v.javaClass.name}")
-                if (v is ReadPictogramView) {
-                    println("remove")
-                    view.removeView(v)
-                }
-            }
-
-            showPictograms(view, context)
-        }
     }
 
     private fun showPictograms(view: View, context: Context) {

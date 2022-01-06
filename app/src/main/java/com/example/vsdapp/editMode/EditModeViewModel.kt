@@ -253,7 +253,6 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     }
 
     private fun deleteImage(id: Int) {
-        println("************ ${iconsOnPicture[id]}")
         iconsOnPicture.remove(id)
     }
 
@@ -303,23 +302,12 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     }
 
     private fun calculateCoordinates(pictogramDetails: PictogramDetails): PictogramDetails {
-
-//        println("width: ${bitmapDetails.width}")
-//        println("height: ${bitmapDetails.height}")
-//        println("aspect ratio: ${bitmapDetails.aspectRatio}")
-//        println("area width: ${editModeAreaDetails.width}")
-//        println("area height: ${editModeAreaDetails.height}")
-//        println("area aspect ratio: ${editModeAreaDetails.aspectRatio}")
-//        println("read mode area width: ${readModeAreaDetails.width} height: ${readModeAreaDetails.height}")
-//        println("read mode aspect ratio: ${readModeAreaDetails.aspectRatio}")
-
         val pictogram = pictogramDetails.copy()
         if (bitmapDetails.aspectRatio > editModeAreaDetails.aspectRatio) {
             val photoW = editModeAreaDetails.width
             val photoH = photoW * bitmapDetails.height / bitmapDetails.width
 
             val yOffset = (editModeAreaDetails.height - photoH) / 2
-//            pictogram.yRead = if(pictogram.y <= (editModeAreaDetails.height / 2)) pictogram.y - yOffset.toInt() else pictogram.y + yOffset.toInt()
             pictogram.yRead = pictogram.y - yOffset.toInt()
 
             if (bitmapDetails.aspectRatio < readModeAreaDetails.aspectRatio) {

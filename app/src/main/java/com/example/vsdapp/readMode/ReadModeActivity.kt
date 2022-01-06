@@ -82,11 +82,6 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-//    override fun onResume() {
-//        super.onResume()
-//        viewModel.loadData(binding.relativeLayoutAtReadMode, this)
-//    }
-
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts.setLanguage(Locale("pl"))
@@ -100,7 +95,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private  fun loadPhotoFromInternalStorage(filename: String): Uri? {
+    private fun loadPhotoFromInternalStorage(filename: String): Uri? {
         val files = filesDir.listFiles { file ->
             file.canRead() && file.isFile && file.name == filename
         }
@@ -112,7 +107,6 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun openEditModeScreen(sceneId: Int, imageLocation: String) {
-//        EditModeActivity.start(this, EditModeType.UPDATE_MODE, sceneId, imageLocation)
         val intent = Intent(this, EditModeActivity::class.java)
             .putExtra(Constants.EDIT_MODE_TYPE, EditModeType.UPDATE_MODE)
             .putExtra(Constants.INTENT_SCENE, sceneId)

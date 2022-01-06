@@ -70,22 +70,8 @@ class EditModeActivity : AppCompatActivity() {
                 readAreaWidth = binding.horizontalLinearLayoutAtEditMode.width.toFloat(),
                 readAreaHeight = binding.horizontalLinearLayoutAtEditMode.height.toFloat(),
             )
-//            println("width: ${bitmap.width}")
-//            println("height: ${bitmap.height}")
-//            println("aspect ratio: ${bitmap.width.toFloat()/bitmap.height.toFloat()}")
-//            println("area width: ${binding.relativeLayoutAtEditMode.width}")
-//            println("area height: ${binding.relativeLayoutAtEditMode.height}")
-//            println("area aspect ratio: ${binding.relativeLayoutAtEditMode.width.toFloat()/binding.relativeLayoutAtEditMode.height.toFloat()}")
-//            println("read mode area width: ${binding.horizontalLinearLayoutAtEditMode.width} height: ${binding.horizontalLinearLayoutAtEditMode.height}")
-//            println("read mode aspect ratio: ${binding.horizontalLinearLayoutAtEditMode.width.toFloat()/binding.horizontalLinearLayoutAtEditMode.height.toFloat()}")
         }
     }
-
-//    val easyImage = EasyImage.Builder(applicationContext)
-//        .setChooserTitle("Wybierz zdjęcie")
-//        .allowMultiple(false)
-//        .setChooserType(ChooserType.CAMERA_AND_GALLERY)
-//        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -244,12 +230,6 @@ class EditModeActivity : AppCompatActivity() {
                     true
                 }
                 DragEvent.ACTION_DRAG_ENDED -> {
-//                    when(event.result) {
-//                        true ->
-//                            Toast.makeText(this, "The drop was handled.", Toast.LENGTH_LONG)
-//                        else ->
-//                            Toast.makeText(this, "The drop didn't work.", Toast.LENGTH_LONG)
-//                    }.show()
                     true
                 }
                 else -> {
@@ -261,19 +241,10 @@ class EditModeActivity : AppCompatActivity() {
         }
     }
 
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//
-//        easyImage.handleActivityResult(requestCode, resultCode, data, this, {
-//
-//        })
-//    }
-
     private fun getPictureFromGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
         intent.type = "image/*"
         startForResult.launch(intent)
-//        easyImage.openGallery(this)
     }
 
     private fun saveImageToInternalStorage(filename: String, bitmap: Bitmap) {
@@ -288,7 +259,7 @@ class EditModeActivity : AppCompatActivity() {
         }
     }
 
-    private  fun loadPhotoFromInternalStorage(filename: String): Uri? {
+    private fun loadPhotoFromInternalStorage(filename: String): Uri? {
         val files = filesDir.listFiles { file ->
             file.canRead() && file.isFile && file.name == filename
         }
