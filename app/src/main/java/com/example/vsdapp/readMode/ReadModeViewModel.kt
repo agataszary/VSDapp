@@ -20,8 +20,6 @@ import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.views.PictogramView
 import com.example.vsdapp.views.ReadPictogramView
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.pictogram_view.view.*
-import kotlinx.android.synthetic.main.read_pictogram_view.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,7 +62,7 @@ class ReadModeViewModel: BaseViewModel() {
             params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params
 
-            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.imageAtReadPictogramView)
+            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtReadPictogramView)
 
             image.setDetails(ReadPictogramView.Data(label = pictogram.label))
             image.setOnClickListener { readLabel(it, context) }

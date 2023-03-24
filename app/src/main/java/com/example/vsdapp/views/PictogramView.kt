@@ -7,11 +7,12 @@ import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.example.vsdapp.R
-import kotlinx.android.synthetic.main.pictogram_view.view.*
+import com.example.vsdapp.databinding.PictogramViewBinding
 
 class PictogramView: LinearLayout {
 
@@ -33,11 +34,12 @@ class PictogramView: LinearLayout {
     )
 
     lateinit var pictogramData: Data
+    lateinit var binding: PictogramViewBinding
     val label: EditText
-        get() = pictogramTitleAtPictogramView
+        get() = binding.pictogramTitleAtPictogramView
 
     private fun initialSetup(context: Context) {
-        View.inflate(context, R.layout.pictogram_view, this)
+        binding = PictogramViewBinding.inflate(LayoutInflater.from(context), this, true)
         this.setOnLongClickListener { v ->
             val item = ClipData.Item(v.tag as? CharSequence)
             val dragData = ClipData(
@@ -60,8 +62,8 @@ class PictogramView: LinearLayout {
     }
 
     fun setDeleteButtonListener(method: ((Int) -> Unit)?) {
-        deleteButtonAtPictogramView.setOnClickListener {
-            linearLayoutAtPictogramView.visibility = View.GONE
+        binding.deleteButtonAtPictogramView.setOnClickListener {
+            binding.linearLayoutAtPictogramView.visibility = View.GONE
             method?.invoke(pictogramData.id)
         }
     }
@@ -75,7 +77,7 @@ class PictogramView: LinearLayout {
     }
 
     fun setLabelEditTextListener(method: ((Int, String) -> Unit)?) {
-        pictogramTitleAtPictogramView.addTextChangedListener(object: TextWatcher {
+        binding.pictogramTitleAtPictogramView.addTextChangedListener(object: TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
 

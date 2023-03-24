@@ -2,10 +2,11 @@ package com.example.vsdapp.views
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
 import com.example.vsdapp.R
-import kotlinx.android.synthetic.main.read_pictogram_view.view.*
+import com.example.vsdapp.databinding.ReadPictogramViewBinding
 
 class ReadPictogramView: LinearLayout {
     constructor(context: Context): super(context) {
@@ -25,9 +26,10 @@ class ReadPictogramView: LinearLayout {
     )
 
     lateinit var pictogramData: Data
+    lateinit var binding: ReadPictogramViewBinding
 
     private fun initialSetup(context: Context){
-        View.inflate(context, R.layout.read_pictogram_view, this)
+        binding = ReadPictogramViewBinding.inflate(LayoutInflater.from(context), this, true)
     }
 
     fun setDetails(details: Data?) {
@@ -36,12 +38,20 @@ class ReadPictogramView: LinearLayout {
 
     private fun update(data: Data){
         pictogramData = data
-        pictogramTitleAtReadPictogramView.text = data.label
+        binding.pictogramTitleAtReadPictogramView.text = data.label
     }
 
     fun setOnClickListener(method: (String) -> Unit) {
-        linearLayoutAtReadPictogramView.setOnClickListener {
+       binding.linearLayoutAtReadPictogramView.setOnClickListener {
             method.invoke(pictogramData.label)
         }
+    }
+
+    fun showPictogram() {
+        binding.linearLayoutAtReadPictogramView.visibility = View.VISIBLE
+    }
+
+    fun hidePictogram() {
+        binding.linearLayoutAtReadPictogramView.visibility = View.INVISIBLE
     }
 }

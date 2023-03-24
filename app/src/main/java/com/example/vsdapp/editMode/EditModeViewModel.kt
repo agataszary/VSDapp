@@ -32,8 +32,6 @@ import com.example.vsdapp.views.PictogramView
 import com.example.vsdapp.views.ReadPictogramView
 import com.ortiz.touchview.TouchImageView
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.pictogram_view.view.*
-import kotlinx.android.synthetic.main.read_pictogram_view.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -120,7 +118,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             params.setMargins(pictogram.x, pictogram.y, 0, 0)
             image.layoutParams = params
 
-            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.imageAtPictogramView)
+            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtPictogramView)
 
             image.setDetails(PictogramView.Data(id = imageId, imageUrl = pictogram.imageUrl))
             image.label.setText(pictogram.label)
@@ -278,7 +276,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             image.layoutParams = params
 
             val imageUrl = iconClickedMutableFlow.value
-            Picasso.get().load(imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.imageAtPictogramView)
+            Picasso.get().load(imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtPictogramView)
 
             image.setDetails(PictogramView.Data(id = imageId, imageUrl = imageUrl))
             image.setDeleteButtonListener { deleteImage(it) }
