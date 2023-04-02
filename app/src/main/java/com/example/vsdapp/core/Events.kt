@@ -10,3 +10,4 @@ object CloseActivity
 class SaveImageToInternalStorage(val fileLocation: String, val bitmap: Bitmap)
 class DeleteScene(val scene: Scene)
 object CloseWithOkResult
+class ChangePictogramsVisibility(val visible: Boolean)

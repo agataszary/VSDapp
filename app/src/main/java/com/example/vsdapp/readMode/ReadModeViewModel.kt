@@ -8,11 +8,14 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
 import androidx.core.view.children
+import androidx.core.view.iterator
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.BaseViewModel
+import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
@@ -31,6 +34,9 @@ class ReadModeViewModel: BaseViewModel() {
 
     private val selectedPictureMutableData = MutableLiveData<Uri>()
     val selectedPictureData: LiveData<Uri> = selectedPictureMutableData
+
+    var showAllCheckBoxChecked = mutableStateOf(false)
+        private set
 
     private lateinit var scene: Scene
     private var sceneId = 0
@@ -65,10 +71,25 @@ class ReadModeViewModel: BaseViewModel() {
             Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtReadPictogramView)
 
             image.setDetails(ReadPictogramView.Data(label = pictogram.label))
-            image.setOnClickListener { readLabel(it, context) }
+            image.setOnClickListener {
+                if (showAllCheckBoxChecked.value) onPictogramClickedInVisibleMode(it, context) else onPictogramClickedInHidingMode(view, it, context)
+            }
 
             (view as ViewGroup).addView(image)
+            image.hidePictogram()
         }
+    }
+
+    private fun onPictogramClickedInHidingMode(view: View, pictogram: ReadPictogramView, context: Context){
+        for(v in (view as ViewGroup)){
+            if (v is ReadPictogramView) v.hidePictogram()
+        }
+        pictogram.showPictogram()
+        readLabel(pictogram.pictogramData.label, context)
+    }
+
+    private fun onPictogramClickedInVisibleMode(pictogram: ReadPictogramView, context: Context){
+        readLabel(pictogram.pictogramData.label, context)
     }
 
     private fun readLabel(label: String, context: Context) {
@@ -76,4 +97,12 @@ class ReadModeViewModel: BaseViewModel() {
         Toast.makeText(context, label, Toast.LENGTH_SHORT).show()
     }
 
+    fun onShowAllCheckedChanged(checked: Boolean){
+        showAllCheckBoxChecked.value = checked
+        changePictogramsVisibility()
+    }
+
+    private fun changePictogramsVisibility(){
+        sendEvent(ChangePictogramsVisibility(showAllCheckBoxChecked.value))
+    }
 }

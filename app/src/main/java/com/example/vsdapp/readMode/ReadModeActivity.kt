@@ -6,18 +6,26 @@ import android.net.Uri
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
+import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
+import androidx.core.view.forEach
+import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.TopNavBar
+import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.databinding.ActivityReadModeBinding
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
+import com.example.vsdapp.views.ReadPictogramView
 import java.util.*
 
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -40,7 +48,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             finish()
-            ReadModeActivity.start(this, scene, imageLocation)
+            start(this, scene, imageLocation)
         }
     }
 
@@ -77,8 +85,36 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
                 onSaveButtonClicked = null,
                 onTitleChanged = null,
                 leftButtonVisibility = true,
-                rightButtonVisibility = true
+                rightButtonVisibility = true,
+                dropdownMenuContent = { TopBarDropdownMenuItems() }
             )
+        }
+
+        setupEventsObserver()
+    }
+
+    @Composable
+    private fun TopBarDropdownMenuItems(){
+        DropdownMenuItem(onClick = { viewModel.onShowAllCheckedChanged(!viewModel.showAllCheckBoxChecked.value) }) {
+            Text(stringResource(R.string.show_all_icons))
+            Checkbox(
+                checked = viewModel.showAllCheckBoxChecked.value,
+                onCheckedChange = { viewModel.onShowAllCheckedChanged(it) },
+                colors = CheckboxDefaults.colors(
+                    checkedColor = colorResource(R.color.light_purple)
+                )
+            )
+        }
+        DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
+            Text(stringResource(R.string.edit))
+        }
+    }
+
+    private fun setupEventsObserver() {
+        viewModel.events.observe(this) { event ->
+            when (val payload = event.getContent()) {
+                is ChangePictogramsVisibility -> changePictogramsVisibility(payload.visible)
+            }
         }
     }
 
@@ -113,6 +149,15 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
             .putExtra(Constants.IMAGE_LOCATION, imageLocation)
 
         startForResult.launch(intent)
+    }
+
+    private fun changePictogramsVisibility(visible: Boolean) {
+        for (view in (binding.relativeLayoutAtReadMode)) {
+            when {
+                view is ReadPictogramView && visible -> view.showPictogram()
+                view is ReadPictogramView && !visible -> view.hidePictogram()
+            }
+        }
     }
 
     public override fun onDestroy() {

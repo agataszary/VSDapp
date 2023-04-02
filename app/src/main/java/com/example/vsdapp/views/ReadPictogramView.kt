@@ -41,9 +41,9 @@ class ReadPictogramView: LinearLayout {
         binding.pictogramTitleAtReadPictogramView.text = data.label
     }
 
-    fun setOnClickListener(method: (String) -> Unit) {
-       binding.linearLayoutAtReadPictogramView.setOnClickListener {
-            method.invoke(pictogramData.label)
+    fun setOnClickListener(method: (ReadPictogramView) -> Unit) {
+       binding.relativeLayoutAtReadPictogramView.setOnClickListener {
+            method.invoke(this)
         }
     }
 
