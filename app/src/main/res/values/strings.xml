@@ -8,4 +8,6 @@
     <string name="save_button_title">Zapisz</string>
     <string name="go_to_gallery_button">Galeria</string>
     <string name="go_to_edit_mode_button">Edytor</string>
+    <string name="edit">Edytuj</string>
+    <string name="show_all_icons">Pokaż wszystkie ikony</string>
 </resources>
