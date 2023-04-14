@@ -7,7 +7,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Entity(tableName = "scenes")
 data class Scene(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     var imageName: String,
     var imageLocation: String,
     @TypeConverters(Converters::class)

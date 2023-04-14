@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -22,16 +23,13 @@ import com.example.vsdapp.R
 
 @Composable
 fun TopNavBar(
-    onBackClicked: (() -> Unit)?,
-    onRightClicked: () -> Unit,
+    onBackClicked: (() -> Unit),
     title: String? = null,
     onSaveButtonClicked: (() -> Unit)?,
     onTitleChanged: ((String) -> Unit)?,
     leftText: String,
-    rightText: String,
     dropdownMenuContent: (@Composable () -> Unit) = {},
     searchFieldVisibility: Boolean,
-    leftButtonVisibility: Boolean,
     rightButtonVisibility: Boolean
 ) {
     TopAppBar(
@@ -41,33 +39,18 @@ fun TopNavBar(
         ConstraintLayout(
             modifier = Modifier.fillMaxWidth()
         ) {
-            val (backButton, backText, titleInputField, saveButton, rightTextRef, rightButton) = createRefs()
-            if (leftButtonVisibility && onBackClicked != null) {
-                IconButton(
-                    onClick = onBackClicked,
-                    modifier = Modifier
-                        .constrainAs(backButton) {
-                            top.linkTo(parent.top)
-                            bottom.linkTo(parent.bottom)
-                            start.linkTo(parent.start)
-                        }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Back arrow"
-                    )
-                }
-                Text(
-                    text = leftText,
-                    modifier = Modifier
-                        .constrainAs(backText) {
-                            top.linkTo(parent.top)
-                            bottom.linkTo(parent.bottom)
-                            start.linkTo(backButton.end)
-                        }
-                        .clickable(enabled = true, onClick = onBackClicked)
-                )
-            }
+            val (backButton, titleInputField, saveButton, rightButton) = createRefs()
+            BackButton(
+                text = leftText,
+                onButtonClicked = onBackClicked,
+                modifier = Modifier
+                    .constrainAs(backButton) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                    }
+            )
+
             if (searchFieldVisibility && title != null && onSaveButtonClicked != null) {
                 OutlinedTextField(
                     value = title,
@@ -82,7 +65,7 @@ fun TopNavBar(
                         .height(50.dp)
                         .constrainAs(titleInputField) {
                             start.linkTo(parent.start)
-                            end.linkTo(rightButton.start)
+                            end.linkTo(parent.end)
                             top.linkTo(parent.top)
                             bottom.linkTo(parent.bottom)
                         }
@@ -104,30 +87,6 @@ fun TopNavBar(
                 }
             }
             if (rightButtonVisibility) {
-//                Text(
-//                    text = rightText,
-//                    modifier = Modifier
-//                        .constrainAs(rightTextRef) {
-//                            top.linkTo(parent.top)
-//                            bottom.linkTo(parent.bottom)
-//                            end.linkTo(rightButton.start)
-//                        }
-//                        .clickable(enabled = true, onClick = onRightClicked)
-//                )
-//                IconButton(
-//                    onClick = onRightClicked,
-//                    modifier = Modifier
-//                        .constrainAs(rightButton) {
-//                            top.linkTo(parent.top)
-//                            bottom.linkTo(parent.bottom)
-//                            end.linkTo(parent.end)
-//                        }
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.Default.ArrowForward,
-//                        contentDescription = "Forward arrow"
-//                    )
-//                }
                 OverflowMenu(modifier = Modifier
                     .padding(end = dimensionResource(id = R.dimen.margin_small))
                     .constrainAs(rightButton) {
@@ -139,7 +98,7 @@ fun TopNavBar(
                 )
             } else {
                 Spacer(modifier = Modifier
-                    .width(125.dp)
+                    .width(80.dp)
                     .constrainAs(rightButton) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
@@ -183,15 +142,12 @@ private fun OverflowMenu(modifier: Modifier, content: @Composable () -> Unit) {
 fun TopNavBarPreview() {
     TopNavBar(
         onBackClicked = {},
-        onRightClicked = {},
         title = "",
         onSaveButtonClicked = {},
         onTitleChanged = {},
         leftText = "Powrót",
-        rightText = "Tryb odczytu",
         searchFieldVisibility = true,
-        leftButtonVisibility = true,
-        rightButtonVisibility = true
+        rightButtonVisibility = false
     )
 }
 

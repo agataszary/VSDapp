@@ -39,11 +39,11 @@ class ReadModeViewModel: BaseViewModel() {
         private set
 
     private lateinit var scene: Scene
-    private var sceneId = 0
+    private var sceneId = 0L
     private lateinit var sceneDao: SceneDao
     private lateinit var tts: TextToSpeech
 
-    fun initialData(sceneId: Int, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
+    fun initialData(sceneId: Long, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
         this.sceneDao = db
         this.tts = textToSpeech
         this.sceneId = sceneId

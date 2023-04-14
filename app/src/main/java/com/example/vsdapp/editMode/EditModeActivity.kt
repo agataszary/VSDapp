@@ -12,19 +12,14 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import android.view.DragEvent
 import android.view.View
-import android.widget.LinearLayout
 import android.widget.RelativeLayout
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import androidx.core.graphics.drawable.toIcon
 import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
@@ -33,12 +28,9 @@ import com.example.vsdapp.compose.SearchIconsColumn
 import com.example.vsdapp.compose.TopNavBar
 import com.example.vsdapp.core.*
 import com.example.vsdapp.database.AppDatabase
-import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.databinding.ActivityEditModeBinding
+import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramView
-import pl.aprilapps.easyphotopicker.ChooserType
-import pl.aprilapps.easyphotopicker.DefaultCallback
-import pl.aprilapps.easyphotopicker.EasyImage
 import java.io.IOException
 import java.util.*
 
@@ -85,7 +77,7 @@ class EditModeActivity : AppCompatActivity() {
 
 
         val mode = intent.getSerializableExtra(Constants.EDIT_MODE_TYPE) as EditModeType
-        val sceneId = intent.getIntExtra(Constants.INTENT_SCENE, 0)
+        val sceneId = intent.getLongExtra(Constants.INTENT_SCENE, 0L)
         val imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)
         val imageUri = if(imageLocation != null) loadPhotoFromInternalStorage(imageLocation) else null
 
@@ -103,32 +95,24 @@ class EditModeActivity : AppCompatActivity() {
         binding.composeTopNavBar.setContent {
             if (mode == EditModeType.CREATE_MODE) {
 
-                val rightButtonVisibility: Boolean by viewModel.rightButtonVisibilityState.collectAsState()
-
                 TopNavBar(
                     onBackClicked = { viewModel.onBackClicked() },
-                    onRightClicked = { viewModel.onRightClicked() },
                     title = viewModel.titleInput.value,
                     onTitleChanged = { viewModel.onTitleStringChanged(it) },
                     onSaveButtonClicked = { viewModel.onSaveButtonClicked() },
                     leftText = stringResource(id = R.string.top_nav_bar_back_arrow_text),
-                    rightText = stringResource(id = R.string.top_nav_bar_forward_arrow_text_read),
                     searchFieldVisibility = true,
-                    leftButtonVisibility = true,
-                    rightButtonVisibility = rightButtonVisibility
+                    rightButtonVisibility = false
                 )
             } else {
                 TopNavBar(
-                    onBackClicked = null,
-                    onRightClicked = { viewModel.onRightClicked() },
+                    onBackClicked = { viewModel.onRightClicked() },
                     title = viewModel.titleInput.value,
                     onTitleChanged = { viewModel.onTitleStringChanged(it) },
                     onSaveButtonClicked = { viewModel.onSaveButtonClicked() },
-                    leftText = "",
-                    rightText = stringResource(id = R.string.top_nav_bar_forward_arrow_text_read),
+                    leftText = stringResource(id = R.string.top_nav_bar_forward_arrow_text_read),
                     searchFieldVisibility = true,
-                    leftButtonVisibility = false,
-                    rightButtonVisibility = true
+                    rightButtonVisibility = false
                 )
             }
         }
@@ -168,7 +152,10 @@ class EditModeActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK)
                     finish()
                 }
-                is SaveImageToInternalStorage -> saveImageToInternalStorage(payload.fileLocation, payload.bitmap)
+                is SaveImageAndOpenReadMode -> {
+                    saveImageToInternalStorage(payload.fileLocation, payload.bitmap)
+                    openReadMode(payload.sceneId, payload.fileLocation)
+                }
             }
         })
     }
@@ -257,6 +244,11 @@ class EditModeActivity : AppCompatActivity() {
         } catch (e: IOException) {
             e.printStackTrace()
         }
+    }
+
+    private fun openReadMode(sceneId: Long, imageLocation: String){
+        ReadModeActivity.start(this, sceneId, imageLocation)
+        finish()
     }
 
     private fun loadPhotoFromInternalStorage(filename: String): Uri? {

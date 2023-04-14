@@ -31,7 +31,7 @@ import java.util.*
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
-        fun start(activity: Activity, sceneId: Int, imageLocation: String) {
+        fun start(activity: Activity, sceneId: Long, imageLocation: String) {
             val intent = Intent(activity, ReadModeActivity::class.java)
                 .putExtra(Constants.INTENT_SCENE, sceneId)
                 .putExtra(Constants.IMAGE_LOCATION, imageLocation)
@@ -43,7 +43,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityReadModeBinding
     lateinit var tts: TextToSpeech
     lateinit var imageLocation: String
-    var scene = 0
+    var scene = 0L
 
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -62,7 +62,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        scene = intent.getIntExtra(Constants.INTENT_SCENE, 0)
+        scene = intent.getLongExtra(Constants.INTENT_SCENE, 0)
         imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
         val db = AppDatabase.getInstance(this)
 
@@ -78,13 +78,10 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.readModeTopNavBar.setContent {
             TopNavBar(
                 onBackClicked = { finish() },
-                onRightClicked = { openEditModeScreen(scene, imageLocation) },
                 leftText = stringResource(id = R.string.top_nav_bar_back_arrow_text),
-                rightText = stringResource(id = R.string.top_nav_bar_forward_arrow_text_edit),
                 searchFieldVisibility = false,
                 onSaveButtonClicked = null,
                 onTitleChanged = null,
-                leftButtonVisibility = true,
                 rightButtonVisibility = true,
                 dropdownMenuContent = { TopBarDropdownMenuItems() }
             )
@@ -142,7 +139,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun openEditModeScreen(sceneId: Int, imageLocation: String) {
+    private fun openEditModeScreen(sceneId: Long, imageLocation: String) {
         val intent = Intent(this, EditModeActivity::class.java)
             .putExtra(Constants.EDIT_MODE_TYPE, EditModeType.UPDATE_MODE)
             .putExtra(Constants.INTENT_SCENE, sceneId)
