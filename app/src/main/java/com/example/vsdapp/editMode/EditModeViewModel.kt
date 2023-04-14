@@ -2,44 +2,28 @@ package com.example.vsdapp.editMode
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.unit.dp
-import androidx.core.net.toFile
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.vsdapp.R
 import com.example.vsdapp.core.*
-import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.models.GetIconsModel
 import com.example.vsdapp.views.PictogramDetails
 import com.example.vsdapp.views.PictogramView
-import com.example.vsdapp.views.ReadPictogramView
-import com.ortiz.touchview.TouchImageView
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import pl.aprilapps.easyphotopicker.EasyImage
 import java.io.File
-import java.io.IOException
 
 class EditModeViewModel(private val repository: EditModeRepository): BaseViewModel() {
 
@@ -68,9 +52,6 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     private val searchButtonEnabledMutableFlow = MutableStateFlow(false)
     val searchButtonEnabledFlow: StateFlow<Boolean> = searchButtonEnabledMutableFlow
 
-    private val rightButtonVisibilityMutableFlow = MutableStateFlow(false)
-    val rightButtonVisibilityState: StateFlow<Boolean> = rightButtonVisibilityMutableFlow
-
     private var imageId = 0
     private var selectedPictureBitmap: Bitmap? = null
     private lateinit var bitmapDetails: AspectRatioDetails
@@ -79,7 +60,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
 
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
 
-    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Int?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
+    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Long?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
         this.sceneDao = sceneDao
         this.filesLocation = filesLocation
         this.mode = mode
@@ -89,7 +70,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
         }
     }
 
-    private fun setupUpdateMode(sceneId: Int, imageLocation: Uri, view: View, context: Context, bitmap: Bitmap) {
+    private fun setupUpdateMode(sceneId: Long, imageLocation: Uri, view: View, context: Context, bitmap: Bitmap) {
         viewModelScope.launch(Dispatchers.Main) {
 
             selectedPictureMutableData.value = imageLocation
@@ -200,10 +181,9 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
                     pictograms = iconsOnPicture.values.toList()
                 )
 
-                withContext(Dispatchers.IO) { sceneDao.insert(scene) }
-                sendEvent(SaveImageToInternalStorage(imageLocation, selectedPictureBitmap!!))
+                val sceneId = withContext(Dispatchers.IO) { sceneDao.insert(scene) }
+                sendEvent(SaveImageAndOpenReadMode(imageLocation, selectedPictureBitmap!!, sceneId))
 
-                rightButtonVisibilityMutableFlow.value = true
             } else {
                 val sceneToUpdate = Scene(
                     id = scene.id,
@@ -212,6 +192,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
                     pictograms = iconsOnPicture.values.toList()
                 )
                 withContext(Dispatchers.IO) { sceneDao.update(sceneToUpdate) }
+                sendEvent(CloseWithOkResult)
             }
         }
     }

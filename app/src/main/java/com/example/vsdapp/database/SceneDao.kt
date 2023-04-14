@@ -11,10 +11,10 @@ interface SceneDao {
     fun getSceneByTitle(title: String): List<Scene>?
 
     @Query("SELECT * FROM scenes WHERE id=:id")
-    fun getSceneById(id: Int): Scene
+    fun getSceneById(id: Long): Scene
 
     @Insert
-    fun insert(scene: Scene)
+    fun insert(scene: Scene): Long
 
     @Update
     fun update(scene: Scene)

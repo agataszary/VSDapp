@@ -149,7 +149,8 @@ fun GalleryContent(
 ) {
     Column {
         GalleryTopNavBar(
-            onBackClicked = onBackButtonClicked
+            onBackClicked = onBackButtonClicked,
+            backButtonText = stringResource(R.string.top_nav_bar_back_arrow_text)
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

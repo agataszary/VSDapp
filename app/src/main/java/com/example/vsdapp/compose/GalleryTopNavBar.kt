@@ -19,7 +19,8 @@ import com.example.vsdapp.R
 
 @Composable
 fun GalleryTopNavBar(
-    onBackClicked: () -> Unit
+    onBackClicked: () -> Unit,
+    backButtonText: String
 ) {
     TopAppBar(
         elevation = 0.dp,
@@ -28,30 +29,16 @@ fun GalleryTopNavBar(
         ConstraintLayout(
             modifier = Modifier.fillMaxWidth()
         ) {
-            val (backButton, backText) = createRefs()
-            IconButton(
-                onClick = onBackClicked,
+            val backButton = createRef()
+            BackButton(
+                text = backButtonText,
+                onButtonClicked = onBackClicked,
                 modifier = Modifier
                     .constrainAs(backButton) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
                     }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back arrow"
-                )
-            }
-            Text(
-                text = stringResource(id = R.string.top_nav_bar_back_arrow_text),
-                modifier = Modifier
-                    .constrainAs(backText) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                        start.linkTo(backButton.end)
-                    }
-                    .clickable(enabled = true, onClick = onBackClicked)
             )
         }
     }
@@ -60,5 +47,8 @@ fun GalleryTopNavBar(
 @Preview
 @Composable
 fun GalleryTopNavBarPreview() {
-    GalleryTopNavBar(onBackClicked = {})
+    GalleryTopNavBar(
+        onBackClicked = {},
+        backButtonText = "Powrót"
+    )
 }
