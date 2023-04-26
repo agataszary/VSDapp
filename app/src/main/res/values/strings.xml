@@ -10,4 +10,8 @@
     <string name="go_to_edit_mode_button">Edytor</string>
     <string name="edit">Edytuj</string>
     <string name="show_all_icons">Pokaż wszystkie ikony</string>
+    <string name="delete_scene_alert_title">Na pewno chcesz usunąć ten element?</string>
+    <string name="delete_scene_alert_body">Ta scena zostanie trwale usunięta.</string>
+    <string name="delete_scene_alert_confirm">Potwierdzam</string>
+    <string name="delete_scene_alert_cancel">Anuluj</string>
 </resources>
