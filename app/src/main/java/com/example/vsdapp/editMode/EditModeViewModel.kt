@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class EditModeViewModel(private val repository: EditModeRepository): BaseViewModel() {
+class EditModeViewModel(private val repository: EditModeRepository): DataBindingViewModel() {
 
     private lateinit var sceneDao: SceneDao
     private lateinit var filesLocation: File
@@ -61,13 +61,17 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
 
     fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Long?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
+        showProgress()
         this.sceneDao = sceneDao
         this.filesLocation = filesLocation
         this.mode = mode
 
         if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null && bitmap != null) {
             setupUpdateMode(sceneId, imageLocation, view, context, bitmap)
+        } else {
+            showContent()
         }
+
     }
 
     private fun setupUpdateMode(sceneId: Long, imageLocation: Uri, view: View, context: Context, bitmap: Bitmap) {
@@ -89,7 +93,7 @@ class EditModeViewModel(private val repository: EditModeRepository): BaseViewMod
             )
 
             sendEvent(SetupTouchListenerAndGetARDetails)
-        }
+        }.invokeOnCompletion { showContent() }
     }
 
     private fun showPictograms(view: View, context: Context) {

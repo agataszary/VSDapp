@@ -1,9 +1,14 @@
 package com.example.vsdapp.core
 
 
-open class Event<out T>(private val content: T) {
+open class Event<out T>(private val content: T?) {
 
-    private var isHandled = false
+    companion object {
+        fun <T> empty(): Event<T> = Event(null)
+    }
+
+    var isHandled = false
+        private set
 
     fun getContent(): T? {
         return if (isHandled) {

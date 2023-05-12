@@ -35,7 +35,10 @@ import androidx.lifecycle.Observer
 import coil.compose.rememberImagePainter
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.GalleryTopNavBar
+import com.example.vsdapp.compose.LoadingScreen
 import com.example.vsdapp.core.DeleteScene
+import com.example.vsdapp.core.ViewState
+import com.example.vsdapp.core.runEventsCollector
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
@@ -62,14 +65,18 @@ class GalleryActivity: AppCompatActivity(){
         viewModel.setInitialData(db.sceneDao)
 
         setContent {
-            GalleryScreen(
-                viewModel = viewModel,
-                onBackButtonClicked = { finish() },
-                onSceneClicked = { onSceneClicked(it) },
-                getImageFromInternalStorage =  {name ->
-                        loadPhotoFromInternalStorage(name)
-                }
-            )
+            when (viewModel.viewStateFlow.collectAsState().value) {
+               is ViewState.Content ->  GalleryScreen(
+                   viewModel = viewModel,
+                   onBackButtonClicked = { finish() },
+                   onSceneClicked = { onSceneClicked(it) },
+                   getImageFromInternalStorage =  {name ->
+                       loadPhotoFromInternalStorage(name)
+                   }
+               )
+                is ViewState.Progress -> LoadingScreen()
+                else -> {}
+            }
         }
 
         setupEventsObserver()
@@ -81,11 +88,11 @@ class GalleryActivity: AppCompatActivity(){
     }
 
     private fun setupEventsObserver() {
-        viewModel.events.observe(this, Observer { event ->
+        runEventsCollector(viewModel) { event ->
             when (val payload = event.getContent()) {
                 is DeleteScene -> onDeleteSceneClicked(payload.scene)
             }
-        })
+        }
     }
 
     private fun onSceneClicked(scene: Scene) {

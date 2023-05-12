@@ -139,7 +139,7 @@ class EditModeActivity : AppCompatActivity() {
     }
 
     private fun setupEventsObserver() {
-        viewModel.events.observe(this, Observer { event ->
+       runEventsCollector(viewModel) { event ->
             when (val payload = event.getContent()) {
                 is RequestOpenGallery -> getPictureFromGallery()
                 is SetupTouchListener -> setupTouchListener()
@@ -157,7 +157,7 @@ class EditModeActivity : AppCompatActivity() {
                     openReadMode(payload.sceneId, payload.fileLocation)
                 }
             }
-        })
+        }
     }
 
     private fun setupUpdateMode() {

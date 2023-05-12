@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material.*
@@ -14,13 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
-import androidx.core.view.forEach
 import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.TopNavBar
 import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
+import com.example.vsdapp.core.runEventsCollector
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.databinding.ActivityReadModeBinding
 import com.example.vsdapp.editMode.EditModeActivity
@@ -108,7 +107,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun setupEventsObserver() {
-        viewModel.events.observe(this) { event ->
+       runEventsCollector(viewModel){ event ->
             when (val payload = event.getContent()) {
                 is ChangePictogramsVisibility -> changePictogramsVisibility(payload.visible)
             }

@@ -3,6 +3,7 @@ package com.example.vsdapp.gallery
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.BaseViewModel
+import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.core.DeleteScene
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
@@ -13,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class GalleryViewModel: BaseViewModel() {
+class GalleryViewModel: ComposeViewModel() {
 
     private lateinit var sceneDao: SceneDao
 
@@ -29,8 +30,9 @@ class GalleryViewModel: BaseViewModel() {
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
+            showProgress()
             withContext(Dispatchers.IO){ scenesListMutableFlow.value = sceneDao.getAll() }
-        }
+        }.invokeOnCompletion { showContent() }
     }
 
     fun onSearchButtonClicked() {
