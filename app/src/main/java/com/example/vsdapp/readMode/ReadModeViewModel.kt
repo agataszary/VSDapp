@@ -17,6 +17,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.BaseViewModel
 import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
+import com.example.vsdapp.core.DataBindingViewModel
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
@@ -27,7 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ReadModeViewModel: BaseViewModel() {
+class ReadModeViewModel: DataBindingViewModel() {
 
     private val selectedPictureVisibilityMutableData = MutableLiveData(View.GONE)
     val selectedPictureVisibilityData: LiveData<Int> = selectedPictureVisibilityMutableData
@@ -44,6 +45,8 @@ class ReadModeViewModel: BaseViewModel() {
     private lateinit var tts: TextToSpeech
 
     fun initialData(sceneId: Long, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
+        showProgress()
+
         this.sceneDao = db
         this.tts = textToSpeech
         this.sceneId = sceneId
@@ -57,6 +60,7 @@ class ReadModeViewModel: BaseViewModel() {
             scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
 
             showPictograms(view, context)
+
         }
 
     }
@@ -64,11 +68,11 @@ class ReadModeViewModel: BaseViewModel() {
     private fun showPictograms(view: View, context: Context) {
         for (pictogram in scene.pictograms) {
             val image = ReadPictogramView(context)
+            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtReadPictogramView)
+
             val params = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
             params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params
-
-            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtReadPictogramView)
 
             image.setDetails(ReadPictogramView.Data(label = pictogram.label))
             image.setOnClickListener {
@@ -78,6 +82,7 @@ class ReadModeViewModel: BaseViewModel() {
             (view as ViewGroup).addView(image)
             image.hidePictogram()
         }
+        showContent()
     }
 
     private fun onPictogramClickedInHidingMode(view: View, pictogram: ReadPictogramView, context: Context){

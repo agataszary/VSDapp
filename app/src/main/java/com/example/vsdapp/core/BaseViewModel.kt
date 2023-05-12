@@ -1,31 +1,15 @@
 package com.example.vsdapp.core
 
-import android.view.View
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 abstract class BaseViewModel: ViewModel() {
 
-    val events = MutableLiveData<Event<*>>()
-
-    private val contentVisibilityMutableData = MutableLiveData(View.VISIBLE)
-    val contentVisibilityData: LiveData<Int> = contentVisibilityMutableData
-
-    private val progressVisibilityMutableData = MutableLiveData(View.INVISIBLE)
-    val progressVisibilityData: LiveData<Int> = progressVisibilityMutableData
+    private val mutableEventsFlow = MutableStateFlow<Event<Any>>(Event.empty())
+    val eventsFlow : StateFlow<Event<Any>> = mutableEventsFlow
 
     fun sendEvent(payload: Any) {
-        events.value = Event(payload)
-    }
-
-    open fun showContent() {
-        contentVisibilityMutableData.value = View.VISIBLE
-        progressVisibilityMutableData.value = View.INVISIBLE
-    }
-
-    open fun showProgress() {
-        contentVisibilityMutableData.value = View.INVISIBLE
-        progressVisibilityMutableData.value = View.VISIBLE
+        mutableEventsFlow.value = Event(payload)
     }
 }
