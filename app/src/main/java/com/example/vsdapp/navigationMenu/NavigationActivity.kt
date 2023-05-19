@@ -3,13 +3,25 @@ package com.example.vsdapp.navigationMenu
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.example.vsdapp.R
@@ -17,6 +29,7 @@ import com.example.vsdapp.compose.MenuButton
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.gallery.GalleryActivity
+import kotlin.math.roundToInt
 
 class NavigationActivity: AppCompatActivity() {
 
@@ -24,10 +37,11 @@ class NavigationActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            NavigationMenuScreen(
-                onGalleryButtonClicked = { openGalleryScreen() },
-                onEditModeButtonClicked = { openEditModeScreen() }
-            )
+//            NavigationMenuScreen(
+//                onGalleryButtonClicked = { openGalleryScreen() },
+//                onEditModeButtonClicked = { openEditModeScreen() }
+//            )
+            Test()
         }
     }
 
@@ -37,6 +51,64 @@ class NavigationActivity: AppCompatActivity() {
 
     private fun openGalleryScreen() {
         GalleryActivity.start(this)
+    }
+}
+
+@Composable
+fun Test (){
+    Column(
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        // set up all transformation states
+        var scale by remember { mutableStateOf(1f) }
+        var rotation by remember { mutableStateOf(0f) }
+        var offset by remember { mutableStateOf(Offset.Zero) }
+        var offsetX by remember { mutableStateOf(0f) }
+        var offsetY by remember { mutableStateOf(0f) }
+        val state = rememberTransformableState { zoomChange, offsetChange, rotationChange ->
+            scale *= zoomChange
+            rotation += rotationChange
+            offsetX += offsetChange.x
+            offsetY += offsetChange.y
+        }
+
+        Box(
+            Modifier
+                // apply other transformations like rotation and zoom
+                // on the pizza slice emoji
+                .absoluteOffset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+                .graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale,
+//                    rotationZ = rotation,
+                    translationX = offset.x,
+                    translationY = offset.y
+                )
+                // add transformable to listen to multitouch transformation events
+                // after offset
+                .pointerInput(Unit) {
+                    detectDragGesturesAfterLongPress { change, dragAmount ->
+                        change.consume()
+                        offsetX += dragAmount.x
+                        offsetY += dragAmount.y
+                        println("x: $offsetX, y: $offsetY")
+                    }
+                }
+                .transformable(state = state)
+                .background(Color.Blue)
+                .size(300.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Face,
+                contentDescription = "",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            )
+        }
     }
 }
 
