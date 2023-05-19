@@ -54,7 +54,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        tts = TextToSpeech(this, this)
+        tts = TextToSpeech(this, this, "com.google.android.tts")
 
         viewModel = ReadModeViewModel()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_read_mode)
@@ -116,7 +116,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts.setLanguage(Locale("pl"))
+            val result = tts.setLanguage(Locale("PL"))
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 Log.e("TTS", "The language specified is not supported!")
             } else {

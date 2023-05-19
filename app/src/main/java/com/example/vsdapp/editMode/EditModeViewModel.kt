@@ -251,7 +251,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
     }
 
     fun placeViewOnTouch(view: View, event: MotionEvent, context: Context) {
-        if (event.action == MotionEvent.ACTION_DOWN) {
+        if (event.action == MotionEvent.ACTION_DOWN && iconClickedMutableFlow.value != "") {
             val x = event.x.toInt() - Constants.IMAGE_SIZE/2
             val y = event.y.toInt() - Constants.IMAGE_SIZE/2
 
