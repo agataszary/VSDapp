@@ -15,6 +15,7 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.DragEvent
 import android.view.View
+import android.view.View.DragShadowBuilder
 import android.widget.RelativeLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
@@ -204,11 +205,13 @@ class EditModeActivity : AppCompatActivity() {
                 DragEvent.ACTION_DROP -> {
                     val item: ClipData.Item = event.clipData.getItemAt(0)
 
-                    val x = event.x.toInt() - Constants.IMAGE_SIZE/2
-                    val y = event.y.toInt() - Constants.IMAGE_SIZE/2
+                    val view = event.localState as PictogramView
+
+                    val x = event.x.toInt() - view.width/2
+                    val y = event.y.toInt() - view.height/2
 
                     params.setMargins(x, y, 0, 0)
-                    val view = event.localState as PictogramView
+
                     view.layoutParams = params
 
                     viewModel.updateImageInfo(id = view.pictogramData.id, x = x, y = y)

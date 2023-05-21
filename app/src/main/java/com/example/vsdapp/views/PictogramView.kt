@@ -45,31 +45,29 @@ class PictogramView: LinearLayout {
     val label: EditText
         get() = binding.pictogramTitleAtPictogramView
 
-    private var readyToMove = true
-
     private fun initialSetup(context: Context) {
         binding = PictogramViewBinding.inflate(LayoutInflater.from(context), this, true)
-        this.setOnLongClickListener { v ->
-            if (readyToMove) {
-                val item = ClipData.Item(v.tag as? CharSequence)
-                val dragData = ClipData(
-                    v.tag as? CharSequence,
-                    arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
-                    item
-                )
-
-                val myShadow = DragShadowBuilder(this)
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    v.startDragAndDrop(dragData, myShadow, v, 0)
-                } else {
-                    v.startDrag(dragData, myShadow, v, 0)
-                }
-
-                v.visibility = View.INVISIBLE
-            }
-            true
-        }
+//        this.setOnLongClickListener { v ->
+//            if (readyToMove) {
+//                val item = ClipData.Item(v.tag as? CharSequence)
+//                val dragData = ClipData(
+//                    v.tag as? CharSequence,
+//                    arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
+//                    item
+//                )
+//
+//                val myShadow = DragShadowBuilder(this)
+//
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+//                    v.startDragAndDrop(dragData, myShadow, v, 0)
+//                } else {
+//                    v.startDrag(dragData, myShadow, v, 0)
+//                }
+//
+//                v.visibility = View.INVISIBLE
+//            }
+//            true
+//        }
 
     }
 
@@ -82,7 +80,7 @@ class PictogramView: LinearLayout {
             mScaleFactor *= detector.scaleFactor
 
             // Don't let the object get too small or too large.
-            mScaleFactor = Math.max(0.8f, Math.min(mScaleFactor, 1.1f))
+            mScaleFactor = Math.max(0.7f, Math.min(mScaleFactor, 1.2f))
 
             println(mScaleFactor)
 
@@ -93,14 +91,15 @@ class PictogramView: LinearLayout {
 
             if (mScaleFactor < 1f && binding.linearLayoutAtPictogramView.width >= 230 || mScaleFactor > 1f && binding.linearLayoutAtPictogramView.width <= 350){
                 println("Zmieniam rozmiar")
-                binding.linearLayoutAtPictogramView.layoutParams =
-                    LayoutParams((width * mScaleFactor).toInt(), (height * mScaleFactor).toInt())
-//                binding.imageAtPictogramView.layoutParams =
-//                    LayoutParams((width * mScaleFactor).toInt(), (height * mScaleFactor).toInt())
+//                binding.linearLayoutAtPictogramView.layoutParams =
+//                    LayoutParams((binding.linearLayoutAtPictogramView.width * mScaleFactor).toInt(), (binding.linearLayoutAtPictogramView.height * mScaleFactor).toInt())
+                binding.imageAtPictogramView.layoutParams =
+                    LayoutParams((binding.imageAtPictogramView.width * mScaleFactor).toInt(), (binding.imageAtPictogramView.height * mScaleFactor).toInt())
 //                binding.pictogramTitleAtPictogramView.layoutParams =
 //                    LayoutParams((width * mScaleFactor).toInt(), height)
             }
-            println(binding.linearLayoutAtPictogramView.width)
+            println("layout w: ${binding.linearLayoutAtPictogramView.width}, h: ${binding.linearLayoutAtPictogramView.height}")
+            println("image w: ${binding.imageAtPictogramView.width}, h: ${binding.imageAtPictogramView.height}")
 
             invalidate()
             return true
@@ -134,29 +133,11 @@ class PictogramView: LinearLayout {
 
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-//        readyToMove = event?.pointerCount != 2
-//        println(readyToMove)
-//        performLongClick()
-//        return true
-
-//        if (event?.pointerCount == 2){
-//            readyToMove = false
-//            mScaleDetector.onTouchEvent(event)
-//        } else if (event?.pointerCount == 1) {
-////           if (readyToMove) readyToMove = true
-//            super.onTouchEvent(event)
-//        } else if (event?.action == MotionEvent.ACTION_UP) {
-//            readyToMove = true
-//        }
-//        if (event?.pointerCount == 2) mScaleDetector.onTouchEvent(event) else super.onTouchEvent(event)
         event?.let {
             mScaleDetector.onTouchEvent(event)
             mGestureDetector.onTouchEvent(event)
-//            super.onTouchEvent(event)
+            super.onTouchEvent(event)
         }
-//        if (event != null) {
-//            mScaleDetector.onTouchEvent(event)
-//        }
 
         return true
     }
