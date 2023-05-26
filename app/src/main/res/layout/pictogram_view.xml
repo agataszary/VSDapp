@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         >
-        <ImageView
+        <ImageButton
             android:id="@+id/deleteButtonAtPictogramView"
             android:layout_width="24dp"
             android:layout_height="24dp"
@@ -22,22 +22,31 @@
             />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <ImageView
-        android:id="@+id/imageAtPictogramView"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingStart="@dimen/margin_small"
         android:paddingEnd="@dimen/margin_small"
-        tools:src="@mipmap/ic_launcher"
-        />
+        android:orientation="vertical"
+        >
 
-    <EditText
-        android:id="@+id/pictogramTitleAtPictogramView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="textMultiLine"
-        android:textAlignment="center"
-        android:textSize="@dimen/text_size"
-        />
+        <ImageView
+            android:id="@+id/imageAtPictogramView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:src="@mipmap/ic_launcher"
+            />
+
+        <EditText
+            android:id="@+id/pictogramTitleAtPictogramView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:textAlignment="center"
+            android:textSize="@dimen/text_size"
+            />
+
+    </LinearLayout>
+
 
 </LinearLayout>

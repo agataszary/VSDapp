@@ -8,16 +8,9 @@
             name="viewModel"
             type="com.example.vsdapp.editMode.EditModeViewModel"/>
     </data>
-
-        <androidx.appcompat.widget.LinearLayoutCompat
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical">
-
-        <androidx.compose.ui.platform.ComposeView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/composeTopNavBar" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <com.example.vsdapp.compose.LoadingScreenView
             android:layout_width="match_parent"
@@ -25,36 +18,49 @@
             android:visibility="@{viewModel.progressVisibilityData}"
             />
 
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="@{viewModel.contentVisibilityData}"
+            android:orientation="vertical">
+
+            <androidx.compose.ui.platform.ComposeView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/composeTopNavBar" />
+
             <androidx.appcompat.widget.LinearLayoutCompat
                 android:id="@+id/horizontalLinearLayoutAtEditMode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="@{viewModel.contentVisibilityData}"
                 android:orientation="horizontal">
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:id="@+id/relativeLayoutAtEditMode"
-                android:background="@color/light_gray"
-                android:layout_weight="1" >
-
-                <ImageView
-                    android:layout_width="match_parent"
+                <RelativeLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:id="@+id/selectedPictureAtEditMode"
-                    android:visibility="@{viewModel.selectedPictureVisibilityData}"
-                    android:src="@{viewModel.selectedPictureData}"
-                    />
+                    android:id="@+id/relativeLayoutAtEditMode"
+                    android:background="@color/light_gray"
+                    android:layout_weight="1" >
 
-            </RelativeLayout>
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:id="@+id/selectedPictureAtEditMode"
+                        android:visibility="@{viewModel.selectedPictureVisibilityData}"
+                        android:src="@{viewModel.selectedPictureData}"
+                        />
 
-            <androidx.compose.ui.platform.ComposeView
-                android:layout_width="@dimen/search_column_width"
-                android:layout_height="match_parent"
-                android:id="@+id/searchIconsColumn" />
+                </RelativeLayout>
+
+                <androidx.compose.ui.platform.ComposeView
+                    android:layout_width="@dimen/search_column_width"
+                    android:layout_height="match_parent"
+                    android:id="@+id/searchIconsColumn" />
 
             </androidx.appcompat.widget.LinearLayoutCompat>
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 </layout>

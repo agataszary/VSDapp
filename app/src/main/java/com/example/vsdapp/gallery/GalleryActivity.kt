@@ -265,8 +265,8 @@ fun GalleryContentPreview() {
         onSearchStringChanged = { },
         onSearchButtonClicked = {  },
         scenesList = listOf(
-            Scene(id = 1, imageName = "obraz1", imageLocation = "url", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label"))),
-            Scene(id = 2, imageName = "obraz2", imageLocation = "url2", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label")))
+            Scene(id = 1, imageName = "obraz1", imageLocation = "url", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300))),
+            Scene(id = 2, imageName = "obraz2", imageLocation = "url2", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300)))
         ),
         onSceneClicked = {},
         onDeleteSceneClicked = {}
