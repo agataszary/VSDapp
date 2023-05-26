@@ -45,30 +45,15 @@ class PictogramView: LinearLayout {
     val label: EditText
         get() = binding.pictogramTitleAtPictogramView
 
+    val imageSize: Int
+        get() = binding.imageAtPictogramView.width
+    val viewWidth: Int
+        get() = binding.linearLayoutAtPictogramView.width
+    val viewHeight: Int
+        get() = binding.linearLayoutAtPictogramView.height
+
     private fun initialSetup(context: Context) {
         binding = PictogramViewBinding.inflate(LayoutInflater.from(context), this, true)
-//        this.setOnLongClickListener { v ->
-//            if (readyToMove) {
-//                val item = ClipData.Item(v.tag as? CharSequence)
-//                val dragData = ClipData(
-//                    v.tag as? CharSequence,
-//                    arrayOf(ClipDescription.MIMETYPE_TEXT_PLAIN),
-//                    item
-//                )
-//
-//                val myShadow = DragShadowBuilder(this)
-//
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-//                    v.startDragAndDrop(dragData, myShadow, v, 0)
-//                } else {
-//                    v.startDrag(dragData, myShadow, v, 0)
-//                }
-//
-//                v.visibility = View.INVISIBLE
-//            }
-//            true
-//        }
-
     }
 
     private var mScaleFactor = 1f
@@ -76,18 +61,12 @@ class PictogramView: LinearLayout {
     private val scaleListener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
 
         override fun onScale(detector: ScaleGestureDetector): Boolean {
-            println("Dupa ${detector.scaleFactor}")
             mScaleFactor *= detector.scaleFactor
 
             // Don't let the object get too small or too large.
             mScaleFactor = Math.max(0.7f, Math.min(mScaleFactor, 1.2f))
 
             println(mScaleFactor)
-
-//            binding.linearLayoutAtPictogramView.updateLayoutParams {
-//                width = (width * mScaleFactor).toInt()
-//                height = (height * mScaleFactor).toInt()
-//            }
 
             if (mScaleFactor < 1f && binding.linearLayoutAtPictogramView.width >= 230 || mScaleFactor > 1f && binding.linearLayoutAtPictogramView.width <= 350){
                 println("Zmieniam rozmiar")

@@ -59,6 +59,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
     private lateinit var readModeAreaDetails: AspectRatioDetails
 
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
+    private val pictogramViewsMap = mutableMapOf<Int, PictogramView>()
 
     fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Long?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
         showProgress()
@@ -92,18 +93,19 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
                 aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
             )
 
+            showContent()
             sendEvent(SetupTouchListenerAndGetARDetails)
-        }.invokeOnCompletion { showContent() }
+        }
     }
 
     private fun showPictograms(view: View, context: Context) {
         for (pictogram in scene.pictograms) {
             val image = PictogramView(context)
-            val params = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+            val params = RelativeLayout.LayoutParams(pictogram.viewWidth, pictogram.viewHeight)
             params.setMargins(pictogram.x, pictogram.y, 0, 0)
             image.layoutParams = params
 
-            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtPictogramView)
+            Picasso.get().load(pictogram.imageUrl).resize(pictogram.imageSize, pictogram.imageSize).into(image.binding.imageAtPictogramView)
 
             image.setDetails(PictogramView.Data(id = imageId, imageUrl = pictogram.imageUrl))
             image.label.setText(pictogram.label)
@@ -114,13 +116,18 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
 
             (view as ViewGroup).addView(image)
 
+            pictogramViewsMap[imageId] = image
+
             iconsOnPicture[imageId] = PictogramDetails(
                 imageUrl = pictogram.imageUrl,
                 x = pictogram.x,
                 y = pictogram.y,
                 label = image.label.text.toString(),
                 xRead = pictogram.xRead,
-                yRead = pictogram.yRead
+                yRead = pictogram.yRead,
+                imageSize = image.imageSize,
+                viewWidth = image.viewWidth,
+                viewHeight = image.viewHeight
             )
 
             imageId += 1
@@ -166,6 +173,12 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
 
     fun onSaveButtonClicked() {
         viewModelScope.launch(Dispatchers.Main) {
+            showProgress()
+            for (id in pictogramViewsMap.keys) {
+                iconsOnPicture[id]?.imageSize = pictogramViewsMap[id]?.imageSize ?: Constants.IMAGE_SIZE
+                iconsOnPicture[id]?.viewWidth = pictogramViewsMap[id]?.viewWidth ?: RelativeLayout.LayoutParams.WRAP_CONTENT
+                iconsOnPicture[id]?.viewHeight = pictogramViewsMap[id]?.viewHeight ?: RelativeLayout.LayoutParams.WRAP_CONTENT
+            }
             if (mode == EditModeType.CREATE_MODE) {
                 var counter = 0
                 val locations = withContext(Dispatchers.IO) { sceneDao.getAll().map { it.imageLocation } }
@@ -271,11 +284,16 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
 
             (view as ViewGroup).addView(image)
 
+            pictogramViewsMap[imageId] = image
+
             val pictogram = calculateCoordinates(PictogramDetails(
                 imageUrl = imageUrl,
                 x = x,
                 y = y,
-                label = image.label.text.toString()
+                label = image.label.text.toString(),
+                imageSize = image.imageSize,
+                viewWidth = image.viewWidth,
+                viewHeight = image.viewHeight
             ))
 
             iconsOnPicture[imageId] = pictogram
@@ -314,8 +332,6 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
             pictogram.xRead = pictogram.x + xOffset
             pictogram.yRead = pictogram.y
         }
-
-
 
         return pictogram
     }

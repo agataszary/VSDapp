@@ -10,5 +10,8 @@ data class PictogramDetails(
     var y: Int,
     var label: String,
     var xRead: Int? = null,
-    var yRead: Int? = null
+    var yRead: Int? = null,
+    var imageSize: Int,
+    var viewWidth: Int ,
+    var viewHeight: Int
 ): Parcelable

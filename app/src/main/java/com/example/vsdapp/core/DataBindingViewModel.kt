@@ -14,12 +14,12 @@ abstract class DataBindingViewModel: BaseViewModel() {
     open fun showProgress() {
         println("Show progress")
         progressVisibilityMutableData.value = View.VISIBLE
-        contentVisibilityMutableData.value = View.GONE
+        contentVisibilityMutableData.value = View.INVISIBLE
     }
 
     open fun showContent() {
         println("Show content")
-        progressVisibilityMutableData.value = View.GONE
+        progressVisibilityMutableData.value = View.INVISIBLE
         contentVisibilityMutableData.value = View.VISIBLE
     }
 }

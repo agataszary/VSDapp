@@ -68,9 +68,9 @@ class ReadModeViewModel: DataBindingViewModel() {
     private fun showPictograms(view: View, context: Context) {
         for (pictogram in scene.pictograms) {
             val image = ReadPictogramView(context)
-            Picasso.get().load(pictogram.imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtReadPictogramView)
+            Picasso.get().load(pictogram.imageUrl).resize(pictogram.imageSize, pictogram.imageSize).into(image.binding.imageAtReadPictogramView)
 
-            val params = RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT)
+            val params = RelativeLayout.LayoutParams(pictogram.viewWidth, pictogram.viewHeight)
             params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params
 
