@@ -24,7 +24,7 @@ class GalleryViewModel: ComposeViewModel() {
 //    private val scenesListMutableFlow = MutableStateFlow<List<Scene>>(listOf())
 //    val scenesListFlow: StateFlow<List<Scene>> = scenesListMutableFlow
 
-    var scenesList = mutableStateOf<MutableList<Scene>>(mutableListOf())
+    var scenesList = mutableStateOf<List<Scene>>(listOf())
         private set
 
     var openAlertDialog = mutableStateOf(false)
@@ -49,9 +49,9 @@ class GalleryViewModel: ComposeViewModel() {
         viewModelScope.launch(Dispatchers.Main) {
             val sceneList = withContext(Dispatchers.IO){ sceneDao.getSceneByTitle(searchInput.value) }
             if (sceneList != null) {
-                scenesList.value = sceneList.toMutableList()
+                scenesList.value = sceneList
             } else {
-                scenesList.value = mutableListOf()
+                scenesList.value = listOf()
             }
         }
     }
@@ -60,7 +60,7 @@ class GalleryViewModel: ComposeViewModel() {
         viewModelScope.launch(Dispatchers.Main) {
             searchInput.value = newSearch ?: ""
             if (searchInput.value == "") {
-                withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll().toMutableList() }
+                withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll() }
             }
         }
     }
@@ -74,8 +74,8 @@ class GalleryViewModel: ComposeViewModel() {
         viewModelScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO){
                 sceneDao.delete(scene)
-                scenesList.value.remove(scene)
-//                scenesList.value = scenesList.value.filter { it != scene }
+//                scenesList.value.remove(scene)
+                scenesList.value = scenesList.value.filter { it != scene }
             }
             sendEvent(DeleteScene(scene))
         }

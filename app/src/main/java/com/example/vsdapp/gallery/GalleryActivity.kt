@@ -27,7 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.Observer
 import coil.compose.rememberImagePainter
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.GalleryTopNavBar
@@ -39,6 +38,7 @@ import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
+import androidx.compose.runtime.remember
 
 class GalleryActivity: AppCompatActivity(){
 
@@ -63,7 +63,6 @@ class GalleryActivity: AppCompatActivity(){
         setContent {
             when (viewModel.viewStateFlow.collectAsState().value) {
                is ViewState.Content ->  GalleryScreen(
-                   viewModel = viewModel,
                    onBackButtonClicked = { finish() },
                    onSceneClicked = { onSceneClicked(it) },
                    getImageFromInternalStorage =  {name ->
@@ -116,31 +115,31 @@ class GalleryActivity: AppCompatActivity(){
         }
     }
 
-}
-
-@Composable
-fun GalleryScreen(
-    viewModel: GalleryViewModel,
-    onBackButtonClicked: () -> Unit,
-    onSceneClicked: (Scene) -> Unit,
-    getImageFromInternalStorage: (String) -> Bitmap?,
-) {
+    @Composable
+    fun GalleryScreen(
+        onBackButtonClicked: () -> Unit,
+        onSceneClicked: (Scene) -> Unit,
+        getImageFromInternalStorage: (String) -> Bitmap?,
+    ) {
 //    val scenesList: List<Scene> by viewModel.scenesListFlow.collectAsState(listOf())
 
-    GalleryContent(
-        onBackButtonClicked = onBackButtonClicked,
-        searchText = viewModel.searchInput.value,
-        onSearchStringChanged = { viewModel.onSearchStringChanged(it) },
-        onSearchButtonClicked = { viewModel.onSearchButtonClicked() },
-        scenesList = viewModel.scenesList.value,
-        onSceneClicked = { onSceneClicked(it) },
-        getImageFromInternalStorage = { getImageFromInternalStorage(it) },
-        onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) },
-        changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
-        openAlertDialog = viewModel.openAlertDialog.value,
-        onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() }
-    )
+        GalleryContent(
+            onBackButtonClicked = onBackButtonClicked,
+            searchText = viewModel.searchInput.value,
+            onSearchStringChanged = { viewModel.onSearchStringChanged(it) },
+            onSearchButtonClicked = { viewModel.onSearchButtonClicked() },
+            scenesList = viewModel.scenesList.value,
+            onSceneClicked = { onSceneClicked(it) },
+            getImageFromInternalStorage = { getImageFromInternalStorage(it) },
+            onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) },
+            changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
+            openAlertDialog = viewModel.openAlertDialog.value,
+            onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() }
+        )
+    }
 }
+
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -159,7 +158,7 @@ fun GalleryContent(
 ) {
     Column {
         GalleryTopNavBar(
-            onBackClicked = onBackButtonClicked,
+            onBackClicked = { onBackButtonClicked() },
             backButtonText = stringResource(R.string.top_nav_bar_back_arrow_text)
         )
         Column(
@@ -230,12 +229,13 @@ fun GalleryContent(
                     )
                 }
             }
-            if (scenesList.isNotEmpty()) {
+//            if (scenesList.isNotEmpty()) {
                 LazyColumn {
                     items(
                         items = scenesList,
                         key = { it.id }
                     ) { scene ->
+                        val image = remember { getImageFromInternalStorage?.let { it(scene.imageLocation) } }
                         Card(
                             border = BorderStroke(
                                 width = 2.dp,
@@ -259,15 +259,15 @@ fun GalleryContent(
                                 ) {
                                     if (getImageFromInternalStorage != null) {
                                         Image(
-                                            painter = rememberImagePainter(
-                                                getImageFromInternalStorage(scene.imageLocation)
-                                            ),
+                                            painter = rememberImagePainter(image),
                                             contentDescription = null,
                                             modifier = Modifier.size(150.dp)
                                         )
                                     } else {
                                         Image(
-                                            painter = rememberImagePainter(R.drawable.ic_launcher_foreground),
+                                            painter = rememberImagePainter(
+                                               remember { R.drawable.ic_launcher_foreground}
+                                            ),
                                             contentDescription = null,
                                             modifier = Modifier.size(150.dp)
                                         )
@@ -295,7 +295,7 @@ fun GalleryContent(
                         }
                     }
                 }
-            }
+//            }
         }
     }
 }
