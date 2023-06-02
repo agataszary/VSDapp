@@ -7,10 +7,7 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,9 +17,7 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,7 +26,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Observer
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberImagePainter
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.GalleryTopNavBar
@@ -43,6 +38,7 @@ import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
+import androidx.compose.runtime.remember
 
 class GalleryActivity: AppCompatActivity(){
 
@@ -67,7 +63,6 @@ class GalleryActivity: AppCompatActivity(){
         setContent {
             when (viewModel.viewStateFlow.collectAsState().value) {
                is ViewState.Content ->  GalleryScreen(
-                   viewModel = viewModel,
                    onBackButtonClicked = { finish() },
                    onSceneClicked = { onSceneClicked(it) },
                    getImageFromInternalStorage =  {name ->
@@ -120,29 +115,33 @@ class GalleryActivity: AppCompatActivity(){
         }
     }
 
+    @Composable
+    fun GalleryScreen(
+        onBackButtonClicked: () -> Unit,
+        onSceneClicked: (Scene) -> Unit,
+        getImageFromInternalStorage: (String) -> Bitmap?,
+    ) {
+//    val scenesList: List<Scene> by viewModel.scenesListFlow.collectAsState(listOf())
+
+        GalleryContent(
+            onBackButtonClicked = onBackButtonClicked,
+            searchText = viewModel.searchInput.value,
+            onSearchStringChanged = { viewModel.onSearchStringChanged(it) },
+            onSearchButtonClicked = { viewModel.onSearchButtonClicked() },
+            scenesList = viewModel.scenesList.value,
+            onSceneClicked = { onSceneClicked(it) },
+            getImageFromInternalStorage = { getImageFromInternalStorage(it) },
+            onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) },
+            changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
+            openAlertDialog = viewModel.openAlertDialog.value,
+            onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() }
+        )
+    }
 }
 
-@Composable
-fun GalleryScreen(
-    viewModel: GalleryViewModel,
-    onBackButtonClicked: () -> Unit,
-    onSceneClicked: (Scene) -> Unit,
-    getImageFromInternalStorage: (String) -> Bitmap?,
-) {
-    val scenesList: List<Scene> by viewModel.scenesListFlow.collectAsState(listOf())
 
-    GalleryContent(
-        onBackButtonClicked = onBackButtonClicked,
-        searchText = viewModel.searchInput.value,
-        onSearchStringChanged = { viewModel.onSearchStringChanged(it) },
-        onSearchButtonClicked = { viewModel.onSearchButtonClicked() },
-        scenesList = scenesList,
-        onSceneClicked = { onSceneClicked(it) },
-        getImageFromInternalStorage = { getImageFromInternalStorage(it) },
-        onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) }
-    )
-}
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GalleryContent(
     onBackButtonClicked: () -> Unit,
@@ -152,11 +151,14 @@ fun GalleryContent(
     scenesList: List<Scene>,
     onSceneClicked: (Scene) -> Unit,
     getImageFromInternalStorage: ((String) -> Bitmap?)? = null,
-    onDeleteSceneClicked: (Scene) -> Unit
+    openAlertDialog: Boolean,
+    onDeleteSceneClicked: (Scene) -> Unit,
+    changeAlertDialogState: (Boolean) -> Unit,
+    onConfirmDeleteClicked: () -> Unit
 ) {
     Column {
         GalleryTopNavBar(
-            onBackClicked = onBackButtonClicked,
+            onBackClicked = { onBackButtonClicked() },
             backButtonText = stringResource(R.string.top_nav_bar_back_arrow_text)
         )
         Column(
@@ -164,6 +166,43 @@ fun GalleryContent(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
+            if (openAlertDialog) {
+                AlertDialog(
+                    onDismissRequest = { changeAlertDialogState(false) },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.delete_scene_alert_title),
+                            fontSize = 20.sp
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(R.string.delete_scene_alert_body)
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = { onConfirmDeleteClicked() }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.delete_scene_alert_confirm)
+                            )
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { changeAlertDialogState(false) }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.delete_scene_alert_cancel)
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .width(300.dp)
+                )
+            }
+
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -190,9 +229,13 @@ fun GalleryContent(
                     )
                 }
             }
-            if (scenesList.isNotEmpty()) {
+//            if (scenesList.isNotEmpty()) {
                 LazyColumn {
-                    items(scenesList) { scene ->
+                    items(
+                        items = scenesList,
+                        key = { it.id }
+                    ) { scene ->
+                        val image = remember { getImageFromInternalStorage?.let { it(scene.imageLocation) } }
                         Card(
                             border = BorderStroke(
                                 width = 2.dp,
@@ -203,6 +246,7 @@ fun GalleryContent(
                                 .width(600.dp)
                                 .clickable { onSceneClicked(scene) }
                                 .padding(bottom = 4.dp)
+                                .animateItemPlacement()
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -215,15 +259,15 @@ fun GalleryContent(
                                 ) {
                                     if (getImageFromInternalStorage != null) {
                                         Image(
-                                            painter = rememberImagePainter(
-                                                getImageFromInternalStorage(scene.imageLocation)
-                                            ),
+                                            painter = rememberImagePainter(image),
                                             contentDescription = null,
                                             modifier = Modifier.size(150.dp)
                                         )
                                     } else {
                                         Image(
-                                            painter = rememberImagePainter(R.drawable.ic_launcher_foreground),
+                                            painter = rememberImagePainter(
+                                               remember { R.drawable.ic_launcher_foreground}
+                                            ),
                                             contentDescription = null,
                                             modifier = Modifier.size(150.dp)
                                         )
@@ -235,20 +279,23 @@ fun GalleryContent(
                                         .padding(start = 16.dp)
                                         .weight(1f)
                                 )
-                                Image(
-                                    imageVector = Icons.Filled.Delete,
-                                    contentDescription = "Delete icon",
-                                    colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                IconButton(
+                                    onClick = { onDeleteSceneClicked(scene) },
                                     modifier = Modifier
                                         .size(48.dp)
                                         .padding(end = 16.dp)
-                                        .clickable { onDeleteSceneClicked.invoke(scene) }
-                                )
+                                ) {
+                                    Image(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Delete icon",
+                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
+//            }
         }
     }
 }
@@ -269,6 +316,9 @@ fun GalleryContentPreview() {
             Scene(id = 2, imageName = "obraz2", imageLocation = "url2", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300)))
         ),
         onSceneClicked = {},
-        onDeleteSceneClicked = {}
+        onDeleteSceneClicked = {},
+        changeAlertDialogState = {},
+        openAlertDialog = false,
+        onConfirmDeleteClicked = {}
     )
 }
