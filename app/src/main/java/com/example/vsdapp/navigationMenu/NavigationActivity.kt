@@ -1,12 +1,15 @@
 package com.example.vsdapp.navigationMenu
 
 import android.os.Bundle
+import android.view.Menu
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,6 +20,7 @@ import com.example.vsdapp.compose.MenuButton
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.gallery.GalleryActivity
+import com.example.vsdapp.settings.SettingsActivity
 
 class NavigationActivity: AppCompatActivity() {
 
@@ -26,7 +30,8 @@ class NavigationActivity: AppCompatActivity() {
         setContent {
             NavigationMenuScreen(
                 onGalleryButtonClicked = { openGalleryScreen() },
-                onEditModeButtonClicked = { openEditModeScreen() }
+                onEditModeButtonClicked = { openEditModeScreen() },
+                onSettingsButtonClicked = { openSettingsScreen() }
             )
         }
     }
@@ -38,24 +43,31 @@ class NavigationActivity: AppCompatActivity() {
     private fun openGalleryScreen() {
         GalleryActivity.start(this)
     }
+
+    private fun openSettingsScreen() {
+        SettingsActivity.start(this)
+    }
 }
 
 @Composable
 fun NavigationMenuScreen(
     onGalleryButtonClicked: () -> Unit,
-    onEditModeButtonClicked: () -> Unit
+    onEditModeButtonClicked: () -> Unit,
+    onSettingsButtonClicked: () -> Unit
 ) {
 
     NavigationMenuContent(
         onGalleryButtonClicked = onGalleryButtonClicked,
-        onEditModeButtonClicked = onEditModeButtonClicked
+        onEditModeButtonClicked = onEditModeButtonClicked,
+        onSettingsButtonClicked = onSettingsButtonClicked
     )
 }
 
 @Composable
 fun NavigationMenuContent(
     onGalleryButtonClicked: () -> Unit,
-    onEditModeButtonClicked: () -> Unit
+    onEditModeButtonClicked: () -> Unit,
+    onSettingsButtonClicked: () -> Unit
 ) {
     ConstraintLayout(
         modifier = Modifier
@@ -83,6 +95,12 @@ fun NavigationMenuContent(
                 text = R.string.go_to_edit_mode_button,
                 onButtonClicked = onEditModeButtonClicked
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            MenuButton(
+                image = R.drawable.settings_48px,
+                text = R.string.go_to_settings_button,
+                onButtonClicked = onSettingsButtonClicked
+            )
         }
     }
 }
@@ -96,6 +114,7 @@ fun NavigationMenuContent(
 fun NavigationActivityPreview(){
     NavigationMenuContent(
         onGalleryButtonClicked = { },
-        onEditModeButtonClicked = {}
+        onEditModeButtonClicked = {},
+        onSettingsButtonClicked = {}
     )
 }

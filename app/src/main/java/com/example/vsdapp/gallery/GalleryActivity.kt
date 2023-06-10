@@ -39,10 +39,11 @@ import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GalleryActivity: AppCompatActivity(){
 
-    lateinit var viewModel: GalleryViewModel
+    private val viewModel by viewModel<GalleryViewModel>()
     lateinit var db: AppDatabase
 
     companion object {
@@ -57,7 +58,6 @@ class GalleryActivity: AppCompatActivity(){
 
         db = AppDatabase.getInstance(this)
 
-        viewModel = GalleryViewModel()
         viewModel.setInitialData(db.sceneDao)
 
         setContent {

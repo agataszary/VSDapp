@@ -25,6 +25,7 @@ import com.example.vsdapp.databinding.ActivityReadModeBinding
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.views.ReadPictogramView
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -38,7 +39,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    lateinit var viewModel: ReadModeViewModel
+    private val viewModel by viewModel<ReadModeViewModel>()
     private lateinit var binding: ActivityReadModeBinding
     lateinit var tts: TextToSpeech
     lateinit var imageLocation: String
@@ -56,7 +57,6 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
         tts = TextToSpeech(this, this, "com.google.android.tts")
 
-        viewModel = ReadModeViewModel()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_read_mode)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
