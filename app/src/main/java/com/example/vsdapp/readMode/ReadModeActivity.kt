@@ -17,6 +17,7 @@ import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.TopNavBar
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.core.runEventsCollector
@@ -25,6 +26,7 @@ import com.example.vsdapp.databinding.ActivityReadModeBinding
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.views.ReadPictogramView
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
@@ -38,7 +40,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    lateinit var viewModel: ReadModeViewModel
+    private val viewModel by viewModel<ReadModeViewModel>()
     private lateinit var binding: ActivityReadModeBinding
     lateinit var tts: TextToSpeech
     lateinit var imageLocation: String
@@ -56,7 +58,6 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
         tts = TextToSpeech(this, this, "com.google.android.tts")
 
-        viewModel = ReadModeViewModel()
         binding = DataBindingUtil.setContentView(this, R.layout.activity_read_mode)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
@@ -65,7 +66,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
         val db = AppDatabase.getInstance(this)
 
-        viewModel.initialData(
+        viewModel.loadInitialData(
             sceneId = scene,
             db = db.sceneDao,
             photoUri = loadPhotoFromInternalStorage(imageLocation),
@@ -101,8 +102,10 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
             )
         }
-        DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
-            Text(stringResource(R.string.edit))
+        if (viewModel.appMode.value == AppMode.PARENTAL_MODE) {
+            DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
+                Text(stringResource(R.string.edit))
+            }
         }
     }
 

@@ -14,4 +14,8 @@
     <string name="delete_scene_alert_body">Ta scena zostanie trwale usunięta.</string>
     <string name="delete_scene_alert_confirm">Potwierdzam</string>
     <string name="delete_scene_alert_cancel">Anuluj</string>
+    <string name="go_to_settings_button">Ustawienia</string>
+    <string name="app_mode">Tryb aplikacji</string>
+    <string name="parental_mode">Tryb rodzica</string>
+    <string name="child_mode">Tryb dziecka</string>
 </resources>

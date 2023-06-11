@@ -32,6 +32,7 @@ import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.databinding.ActivityEditModeBinding
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramView
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 import java.util.*
 
@@ -47,7 +48,7 @@ class EditModeActivity : AppCompatActivity() {
         }
     }
 
-    lateinit var viewModel: EditModeViewModel
+    private val viewModel by viewModel<EditModeViewModel>()
     private lateinit var binding: ActivityEditModeBinding
     lateinit var db: AppDatabase
 
@@ -69,7 +70,6 @@ class EditModeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = EditModeViewModel(EditModeRepository())
         binding = DataBindingUtil.setContentView(this, R.layout.activity_edit_mode)
         binding.lifecycleOwner = this
         binding.viewModel = viewModel

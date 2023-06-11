@@ -37,7 +37,7 @@ class DatabaseTest {
     @Test
     @Throws(Exception::class)
     fun insertAndGet() {
-        val pictogram = PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label")
+        val pictogram = PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 236, viewHeight = 300)
         val scene = Scene(imageLocation = "location", imageName = "scene1", pictograms = listOf(pictogram))
         sceneDao.insert(scene)
         val getScene = sceneDao.getAll()

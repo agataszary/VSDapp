@@ -39,10 +39,12 @@ import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
+import com.example.vsdapp.core.AppMode
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GalleryActivity: AppCompatActivity(){
 
-    lateinit var viewModel: GalleryViewModel
+    private val viewModel by viewModel<GalleryViewModel>()
     lateinit var db: AppDatabase
 
     companion object {
@@ -57,7 +59,6 @@ class GalleryActivity: AppCompatActivity(){
 
         db = AppDatabase.getInstance(this)
 
-        viewModel = GalleryViewModel()
         viewModel.setInitialData(db.sceneDao)
 
         setContent {
@@ -134,7 +135,8 @@ class GalleryActivity: AppCompatActivity(){
             onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) },
             changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
             openAlertDialog = viewModel.openAlertDialog.value,
-            onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() }
+            onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() },
+            appMode = viewModel.appMode.value
         )
     }
 }
@@ -154,7 +156,8 @@ fun GalleryContent(
     openAlertDialog: Boolean,
     onDeleteSceneClicked: (Scene) -> Unit,
     changeAlertDialogState: (Boolean) -> Unit,
-    onConfirmDeleteClicked: () -> Unit
+    onConfirmDeleteClicked: () -> Unit,
+    appMode: AppMode
 ) {
     Column {
         GalleryTopNavBar(
@@ -279,17 +282,19 @@ fun GalleryContent(
                                         .padding(start = 16.dp)
                                         .weight(1f)
                                 )
-                                IconButton(
-                                    onClick = { onDeleteSceneClicked(scene) },
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .padding(end = 16.dp)
-                                ) {
-                                    Image(
-                                        imageVector = Icons.Filled.Delete,
-                                        contentDescription = "Delete icon",
-                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                    )
+                                if (appMode == AppMode.PARENTAL_MODE) {
+                                    IconButton(
+                                        onClick = { onDeleteSceneClicked(scene) },
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .padding(end = 16.dp)
+                                    ) {
+                                        Image(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = "Delete icon",
+                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -319,6 +324,7 @@ fun GalleryContentPreview() {
         onDeleteSceneClicked = {},
         changeAlertDialogState = {},
         openAlertDialog = false,
-        onConfirmDeleteClicked = {}
+        onConfirmDeleteClicked = {},
+        appMode = AppMode.PARENTAL_MODE
     )
 }

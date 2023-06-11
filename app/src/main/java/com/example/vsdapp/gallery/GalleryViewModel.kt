@@ -3,9 +3,11 @@ package com.example.vsdapp.gallery
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewModelScope
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.BaseViewModel
 import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.core.DeleteScene
+import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
@@ -30,6 +32,9 @@ class GalleryViewModel: ComposeViewModel() {
     var openAlertDialog = mutableStateOf(false)
         private set
 
+    var appMode = mutableStateOf(AppMode.NONE)
+        private set
+
     private var sceneToDelete: Scene? = null
 
     fun setInitialData(sceneDao: SceneDao) {
@@ -42,6 +47,7 @@ class GalleryViewModel: ComposeViewModel() {
 //            withContext(Dispatchers.IO){ scenesListMutableFlow.value = sceneDao.getAll() }
             showProgress()
             withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll().toMutableList() }
+            appMode.value = withContext(Dispatchers.IO) {dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY)}
         }.invokeOnCompletion { showContent() }
     }
 

@@ -12,4 +12,5 @@
     <color name="light_purple_transparent">#BF6666FF</color>
     <color name="light_gray">#d9d7d7</color>
     <color name="red_x">#d20000</color>
+    <color name="dark_purple_gray">#29293d</color>
 </resources>
