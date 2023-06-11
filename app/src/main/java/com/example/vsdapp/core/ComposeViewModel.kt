@@ -13,10 +13,12 @@ abstract class ComposeViewModel: BaseViewModel() {
     }
 
     open fun showProgress() {
+        println("show progress")
         if (viewStateMutableFlow.value !is ViewState.Progress) setViewState(ViewState.Progress)
     }
 
     open fun showContent() {
+        println("show content")
         if (viewStateMutableFlow.value !is ViewState.Content) setViewState(ViewState.Content)
     }
 

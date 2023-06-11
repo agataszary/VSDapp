@@ -26,8 +26,9 @@ class SettingsViewModel: ComposeViewModel() {
     fun onBackClicked() {
         viewModelScope.launch {
             dataStore.updatePreference(PreferencesDataStore.APP_MODE_KEY, appModeState.value)
+            println(appModeState.value)
+            sendEvent(CloseActivity)
         }
-        sendEvent(CloseActivity)
     }
 
     fun onAppModeButtonClicked(index: Int) {

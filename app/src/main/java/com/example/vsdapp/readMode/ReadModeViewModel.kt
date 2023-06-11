@@ -5,23 +5,19 @@ import android.net.Uri
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
-import androidx.core.view.children
 import androidx.core.view.iterator
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.example.vsdapp.core.BaseViewModel
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ChangePictogramsVisibility
-import com.example.vsdapp.core.Constants
 import com.example.vsdapp.core.DataBindingViewModel
-import com.example.vsdapp.database.AppDatabase
+import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
-import com.example.vsdapp.views.PictogramView
 import com.example.vsdapp.views.ReadPictogramView
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
@@ -38,13 +34,14 @@ class ReadModeViewModel: DataBindingViewModel() {
 
     var showAllCheckBoxChecked = mutableStateOf(false)
         private set
+    var appMode = mutableStateOf(AppMode.NONE)
 
     private lateinit var scene: Scene
     private var sceneId = 0L
     private lateinit var sceneDao: SceneDao
     private lateinit var tts: TextToSpeech
 
-    fun initialData(sceneId: Long, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
+    fun loadInitialData(sceneId: Long, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
         showProgress()
 
         this.sceneDao = db
@@ -58,7 +55,7 @@ class ReadModeViewModel: DataBindingViewModel() {
 
         viewModelScope.launch(Dispatchers.Main) {
             scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
-
+            appMode.value = withContext(Dispatchers.IO){ dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY) }
             showPictograms(view, context)
 
         }

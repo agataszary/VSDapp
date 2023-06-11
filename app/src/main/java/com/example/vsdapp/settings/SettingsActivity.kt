@@ -3,6 +3,7 @@ package com.example.vsdapp.settings
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +56,12 @@ class SettingsActivity: AppCompatActivity() {
         }
 
         setupEventsObserver()
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true){
+            override fun handleOnBackPressed() {
+                viewModel.onBackClicked()
+            }
+        })
     }
 
     private fun setupEventsObserver() {

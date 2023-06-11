@@ -23,7 +23,7 @@ class PreferencesDataStore(context: Context) {
 
     suspend fun getPreference(key: Preferences.Key<Int>): AppMode {
         val dataFlow = dataStore.data.map { preferences ->
-            preferences[APP_MODE_KEY] ?: 1
+            preferences[APP_MODE_KEY] ?: AppMode.toValue(AppMode.PARENTAL_MODE)
         }
         return AppMode.fromValue(dataFlow.first())
     }

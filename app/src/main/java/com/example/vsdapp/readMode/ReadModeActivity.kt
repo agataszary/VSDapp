@@ -17,6 +17,7 @@ import androidx.core.view.iterator
 import androidx.databinding.DataBindingUtil
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.TopNavBar
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ChangePictogramsVisibility
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.core.runEventsCollector
@@ -65,7 +66,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
         val db = AppDatabase.getInstance(this)
 
-        viewModel.initialData(
+        viewModel.loadInitialData(
             sceneId = scene,
             db = db.sceneDao,
             photoUri = loadPhotoFromInternalStorage(imageLocation),
@@ -101,8 +102,10 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
             )
         }
-        DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
-            Text(stringResource(R.string.edit))
+        if (viewModel.appMode.value == AppMode.PARENTAL_MODE) {
+            DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
+                Text(stringResource(R.string.edit))
+            }
         }
     }
 

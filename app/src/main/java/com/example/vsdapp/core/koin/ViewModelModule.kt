@@ -2,6 +2,7 @@ package com.example.vsdapp.core.koin
 
 import com.example.vsdapp.editMode.EditModeViewModel
 import com.example.vsdapp.gallery.GalleryViewModel
+import com.example.vsdapp.navigationMenu.NavigationViewModel
 import com.example.vsdapp.readMode.ReadModeViewModel
 import com.example.vsdapp.settings.SettingsViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -15,5 +16,6 @@ object ViewModelModule {
             viewModel { GalleryViewModel() }
             viewModel { ReadModeViewModel() }
             viewModel { SettingsViewModel() }
+            viewModel { NavigationViewModel() }
         }
 }
