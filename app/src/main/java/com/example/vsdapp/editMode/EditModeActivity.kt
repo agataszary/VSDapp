@@ -17,6 +17,7 @@ import android.view.DragEvent
 import android.view.View
 import android.view.View.DragShadowBuilder
 import android.widget.RelativeLayout
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,6 +65,25 @@ class EditModeActivity : AppCompatActivity() {
                 readAreaWidth = binding.horizontalLinearLayoutAtEditMode.width.toFloat(),
                 readAreaHeight = binding.horizontalLinearLayoutAtEditMode.height.toFloat(),
             )
+        }
+    }
+
+    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        // Callback is invoked after the user selects a media item or closes the
+        // photo picker.
+        if (uri != null) {
+            Log.d("PhotoPicker", "Selected URI: $uri")
+            viewModel.changeBackgroundPicture(uri)
+            val bitmap = uriToBitmap(uri)
+            viewModel.saveBitmap(
+                bitmap = bitmap,
+                editAreaWidth = binding.relativeLayoutAtEditMode.width.toFloat(),
+                editAreaHeight = binding.relativeLayoutAtEditMode.height.toFloat(),
+                readAreaWidth = binding.horizontalLinearLayoutAtEditMode.width.toFloat(),
+                readAreaHeight = binding.horizontalLinearLayoutAtEditMode.height.toFloat(),
+            )
+        } else {
+            Log.d("PhotoPicker", "No media selected")
         }
     }
 
@@ -233,9 +253,13 @@ class EditModeActivity : AppCompatActivity() {
     }
 
     private fun getPictureFromGallery() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
-        intent.type = "image/*"
-        startForResult.launch(intent)
+//        if (ActivityResultContracts.PickVisualMedia.isPhotoPickerAvailable(this)){
+            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//        } else {
+//            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI)
+//            intent.type = "image/*"
+//            startForResult.launch(intent)
+//        }
     }
 
     private fun saveImageToInternalStorage(filename: String, bitmap: Bitmap) {
