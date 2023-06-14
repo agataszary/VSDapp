@@ -278,6 +278,8 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
             params.setMargins(x, y, 0, 0)
             image.layoutParams = params
 
+            image.binding.imageAtPictogramView.layoutParams = LinearLayout.LayoutParams(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE)
+
             val imageUrl = iconClickedMutableFlow.value
             Picasso.get().load(imageUrl).resize(Constants.IMAGE_SIZE, Constants.IMAGE_SIZE).into(image.binding.imageAtPictogramView)
 
