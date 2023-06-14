@@ -5,6 +5,7 @@ import android.net.Uri
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
@@ -24,6 +25,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Properties
 
 class ReadModeViewModel: DataBindingViewModel() {
 
@@ -69,7 +71,7 @@ class ReadModeViewModel: DataBindingViewModel() {
             Picasso.get().load(pictogram.imageUrl).resize(pictogram.imageSize, pictogram.imageSize).into(image.binding.imageAtReadPictogramView)
 
             image.binding.imageAtReadPictogramView.layoutParams = LinearLayout.LayoutParams(pictogram.imageSize, pictogram.imageSize)
-            val params = RelativeLayout.LayoutParams(pictogram.viewWidth, pictogram.viewHeight)
+            val params = RelativeLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
             params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params
 
