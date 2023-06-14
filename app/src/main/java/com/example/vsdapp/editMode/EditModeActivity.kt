@@ -132,7 +132,8 @@ class EditModeActivity : AppCompatActivity() {
                 onChangeBackgroundPictureClicked = { viewModel.onChangeBackgroundPictureClicked() },
                 onSearchStringChanged = { viewModel.onSearchStringChanged(it) },
                 onIconClicked = { viewModel.onIconClicked(it) },
-                choosePictureButtonVisibility = mode == EditModeType.CREATE_MODE
+                choosePictureButtonVisibility = mode == EditModeType.CREATE_MODE,
+                shouldShowNoResultsDisclaimer = viewModel.shouldShowNoResultsDisclaimer.value
             )
         }
 

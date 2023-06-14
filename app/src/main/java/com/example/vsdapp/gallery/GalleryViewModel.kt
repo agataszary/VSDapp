@@ -2,6 +2,7 @@ package com.example.vsdapp.gallery
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.BaseViewModel
@@ -35,6 +36,8 @@ class GalleryViewModel: ComposeViewModel() {
     var appMode = mutableStateOf(AppMode.NONE)
         private set
 
+    val shouldShowNoResultsDisclaimer = mutableStateOf(false)
+
     private var sceneToDelete: Scene? = null
 
     fun setInitialData(sceneDao: SceneDao) {
@@ -59,14 +62,18 @@ class GalleryViewModel: ComposeViewModel() {
             } else {
                 scenesList.value = listOf()
             }
+            shouldShowNoResultsDisclaimer.value = sceneList.isNullOrEmpty()
         }
     }
 
-    fun onSearchStringChanged(newSearch: String? = null) {
+    fun onSearchStringChanged(newSearch: String) {
         viewModelScope.launch(Dispatchers.Main) {
-            searchInput.value = newSearch ?: ""
-            if (searchInput.value == "") {
-                withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll() }
+            if (newSearch.isNotBlank() || (newSearch.isBlank() && searchInput.value != "")){
+                searchInput.value = newSearch
+                if (searchInput.value == "") {
+                    withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll() }
+                    shouldShowNoResultsDisclaimer.value = false
+                }
             }
         }
     }

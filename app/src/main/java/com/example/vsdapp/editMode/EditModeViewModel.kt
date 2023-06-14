@@ -6,6 +6,7 @@ import android.net.Uri
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
@@ -34,6 +35,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
 
     val searchInput = mutableStateOf("")
     val titleInput = mutableStateOf("")
+    val shouldShowNoResultsDisclaimer = mutableStateOf(false)
 
     private var iconsFromSearch: List<GetIconsModel> = listOf()
 
@@ -105,6 +107,8 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
             params.setMargins(pictogram.x, pictogram.y, 0, 0)
             image.layoutParams = params
 
+            image.binding.imageAtPictogramView.layoutParams = LinearLayout.LayoutParams(pictogram.imageSize, pictogram.imageSize)
+
             Picasso.get().load(pictogram.imageUrl).resize(pictogram.imageSize, pictogram.imageSize).into(image.binding.imageAtPictogramView)
 
             image.setDetails(PictogramView.Data(id = imageId, imageUrl = pictogram.imageUrl))
@@ -142,8 +146,8 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
         sendEvent(CloseWithOkResult)
     }
 
-    fun onSearchStringChanged(newSearch: String? = null) {
-        searchInput.value = newSearch ?: ""
+    fun onSearchStringChanged(newSearch: String) {
+        if (newSearch.isNotBlank() || (newSearch.isBlank() && searchInput.value != "")) searchInput.value = newSearch
     }
 
     fun onTitleStringChanged(newTitle: String? = null) {
@@ -155,6 +159,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
         viewModelScope.launch(Dispatchers.Main) {
             val listOfIcons = mutableListOf<String>()
             iconsFromSearch = withContext(Dispatchers.IO) { repository.getIcons(searchInput.value) }
+            shouldShowNoResultsDisclaimer.value = iconsFromSearch.isEmpty()
             iconsFromSearch.forEach { icon ->
                 listOfIcons.add(Constants.URL_PICTOGRAMS + icon._id)
             }

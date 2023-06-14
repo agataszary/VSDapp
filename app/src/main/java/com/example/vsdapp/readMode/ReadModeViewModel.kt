@@ -5,6 +5,7 @@ import android.net.Uri
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
@@ -67,6 +68,7 @@ class ReadModeViewModel: DataBindingViewModel() {
             val image = ReadPictogramView(context)
             Picasso.get().load(pictogram.imageUrl).resize(pictogram.imageSize, pictogram.imageSize).into(image.binding.imageAtReadPictogramView)
 
+            image.binding.imageAtReadPictogramView.layoutParams = LinearLayout.LayoutParams(pictogram.imageSize, pictogram.imageSize)
             val params = RelativeLayout.LayoutParams(pictogram.viewWidth, pictogram.viewHeight)
             params.setMargins(pictogram.xRead ?: pictogram.x, pictogram.yRead ?: pictogram.y, 0, 0)
             image.layoutParams = params

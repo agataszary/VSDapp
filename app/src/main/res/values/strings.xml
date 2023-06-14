@@ -18,4 +18,5 @@
     <string name="app_mode">Tryb aplikacji</string>
     <string name="parental_mode">Tryb rodzica</string>
     <string name="child_mode">Tryb dziecka</string>
+    <string name="no_results">Brak wyników</string>
 </resources>
