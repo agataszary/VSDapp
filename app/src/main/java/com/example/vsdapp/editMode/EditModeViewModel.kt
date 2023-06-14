@@ -103,7 +103,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
     private fun showPictograms(view: View, context: Context) {
         for (pictogram in scene.pictograms) {
             val image = PictogramView(context)
-            val params = RelativeLayout.LayoutParams(pictogram.viewWidth, pictogram.viewHeight)
+            val params = RelativeLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             params.setMargins(pictogram.x, pictogram.y, 0, 0)
             image.layoutParams = params
 
