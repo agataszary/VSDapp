@@ -11,11 +11,14 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.*
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +42,9 @@ import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import com.example.vsdapp.compose.NoResultsDisclaimer
 import com.example.vsdapp.core.AppMode
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -136,7 +142,8 @@ class GalleryActivity: AppCompatActivity(){
             changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
             openAlertDialog = viewModel.openAlertDialog.value,
             onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() },
-            appMode = viewModel.appMode.value
+            appMode = viewModel.appMode.value,
+            shouldShowNoResultsDisclaimer = viewModel.shouldShowNoResultsDisclaimer.value
         )
     }
 }
@@ -157,8 +164,16 @@ fun GalleryContent(
     onDeleteSceneClicked: (Scene) -> Unit,
     changeAlertDialogState: (Boolean) -> Unit,
     onConfirmDeleteClicked: () -> Unit,
-    appMode: AppMode
+    appMode: AppMode,
+    shouldShowNoResultsDisclaimer: Boolean
 ) {
+    val focusManager = LocalFocusManager.current
+
+    val onSearchButtonClickedAction = {
+        onSearchButtonClicked()
+        focusManager.clearFocus()
+    }
+
     Column {
         GalleryTopNavBar(
             onBackClicked = { onBackButtonClicked() },
@@ -219,11 +234,24 @@ fun GalleryContent(
                     value = searchText,
                     onValueChange = { onSearchStringChanged.invoke(it) },
                     singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onSearchButtonClickedAction() }
+                    ),
+                    trailingIcon = {
+                        IconButton(onClick = { onSearchStringChanged("") }) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Close icon",
+                                tint = colorResource(R.color.gray)
+                            )
+                        }
+                    },
                     modifier = Modifier
                         .width(400.dp)
                 )
                 Button(
-                    onClick = onSearchButtonClicked,
+                    onClick = onSearchButtonClickedAction,
                     enabled = searchText != "",
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
@@ -232,7 +260,18 @@ fun GalleryContent(
                     )
                 }
             }
-//            if (scenesList.isNotEmpty()) {
+            if (shouldShowNoResultsDisclaimer) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                ) {
+                    NoResultsDisclaimer(
+                        modifier = Modifier
+                            .padding(top = 100.dp)
+                            .align(Alignment.TopCenter)
+                    )
+                }
+            } else {
                 LazyColumn {
                     items(
                         items = scenesList,
@@ -300,7 +339,7 @@ fun GalleryContent(
                         }
                     }
                 }
-//            }
+            }
         }
     }
 }
@@ -325,6 +364,7 @@ fun GalleryContentPreview() {
         changeAlertDialogState = {},
         openAlertDialog = false,
         onConfirmDeleteClicked = {},
-        appMode = AppMode.PARENTAL_MODE
+        appMode = AppMode.PARENTAL_MODE,
+        shouldShowNoResultsDisclaimer = false
     )
 }
