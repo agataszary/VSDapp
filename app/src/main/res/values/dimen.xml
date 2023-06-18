@@ -3,6 +3,7 @@
     <dimen name="margin_tiny">4dp</dimen>
     <dimen name="margin_small">8dp</dimen>
     <dimen name="margin_large">16dp</dimen>
+    <dimen name="margin_xlarge">32dp</dimen>
     <dimen name="text_size">12sp</dimen>
     <dimen name="search_column_width">300dp</dimen>
     <dimen name="small_icon_size">20dp</dimen>

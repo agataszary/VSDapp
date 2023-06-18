@@ -64,6 +64,14 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme"
             />
+        <activity
+            android:name=".login.LoginActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme"/>
+        <activity
+            android:name=".register.RegisterActivity"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

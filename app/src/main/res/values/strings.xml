@@ -19,4 +19,18 @@
     <string name="parental_mode">Tryb rodzica</string>
     <string name="child_mode">Tryb dziecka</string>
     <string name="no_results">Brak wyników</string>
+    <string name="log_in">Zaloguj się</string>
+    <string name="register_account">Stwórz konto</string>
+    <string name="email_address">E-mail</string>
+    <string name="password">Hasło</string>
+    <string name="login_view_question">Nie posiadsz konta?</string>
+    <string name="create_account">Utwórz je!</string>
+    <string name="name_label">Imię</string>
+    <string name="surname_label">Nazwisko</string>
+    <string name="child_name_label_optional">Imię dziecka (opcjonalne)</string>
+    <string name="child_surname_label_optional">Nazwisko dziecka (opcjonalne)</string>
+    <string name="repeat_password">Powtórz hasło</string>
+    <string name="create_therapist_account_checkbox">Utwórz konto terapeuty</string>
+    <string name="create_therapist_account_alert_title">Tworzysz właśnie konto terapeuty</string>
+    <string name="create_therapist_account_alert_body">Zaznaczając to pole utworzysz konto terapeuty. Potwierdź, że właśnie tego chcesz. Jeżeli jesteś tylko użytkownikiem aplikacji, naciśnij Anuluj lub odznacz to pole.</string>
 </resources>
