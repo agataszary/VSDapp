@@ -3,13 +3,18 @@ package com.example.vsdapp.login
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedTextField
@@ -19,12 +24,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,6 +78,9 @@ fun LoginContent(
     onCreateAccountClicked: () -> Unit,
     isButtonEnabled: Boolean
 ) {
+
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -78,12 +89,18 @@ fun LoginContent(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 100.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Text(
                     text = stringResource(R.string.log_in),
@@ -101,6 +118,10 @@ fun LoginContent(
                         )
                     },
                     isError = isEmailError,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
                     modifier = Modifier
                         .padding(bottom = dimensionResource(R.dimen.margin_xlarge))
                 )
@@ -113,11 +134,18 @@ fun LoginContent(
                         )
                     },
                     visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { focusManager.clearFocus() }
+                    ),
                     modifier = Modifier
                         .padding(bottom = dimensionResource(R.dimen.margin_xlarge))
                 )
                 Button(
-                    onClick = onLoginButtonClicked,
+                    onClick = {
+                        onLoginButtonClicked()
+                        focusManager.clearFocus()
+                    },
                     shape = RoundedCornerShape(40.dp),
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = colorResource(R.color.medium_purple),
@@ -145,7 +173,10 @@ fun LoginContent(
                             fontWeight = FontWeight.Bold,
                             color = colorResource(R.color.medium_purple)
                         ),
-                        onClick = { onCreateAccountClicked() }
+                        onClick = {
+                            onCreateAccountClicked()
+                            focusManager.clearFocus()
+                        }
                     )
                 }
             }

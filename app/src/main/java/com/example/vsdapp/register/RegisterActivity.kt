@@ -3,15 +3,21 @@ package com.example.vsdapp.register
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -24,10 +30,14 @@ import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -93,6 +103,8 @@ fun RegisterContent(
     openAlertDialog: Boolean,
     changeAlertDialogState: (Boolean) -> Unit,
 ) {
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -101,6 +113,11 @@ fun RegisterContent(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }
         ) {
             if (openAlertDialog) {
                 TherapistAlertDialog(
@@ -112,6 +129,7 @@ fun RegisterContent(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 50.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Text(
                     text = stringResource(R.string.register_account),
@@ -126,12 +144,14 @@ fun RegisterContent(
                     MainNameAndSurnameSection(
                         mainNameValue = mainNameValue,
                         mainSurnameValue = mainSurnameValue,
-                        onMainNameValueChanged = onMainNameValueChanged
+                        onMainNameValueChanged = onMainNameValueChanged,
+                        focusManager = focusManager
                     )
                     ChildNameAndSurnameSection(
                         childNameValue = childNameValue,
                         childSurnameValue = childSurnameValue,
-                        onChildNameChanged = onChildNameChanged
+                        onChildNameChanged = onChildNameChanged,
+                        focusManager = focusManager
                     )
                     OutlinedTextField(
                         value = emailAddressValue,
@@ -141,6 +161,10 @@ fun RegisterContent(
                                 text = stringResource(R.string.email_address)
                             )
                         },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { focusManager.clearFocus() }
+                        ),
                         isError = isEmailError,
                         modifier = Modifier
                             .padding(bottom = dimensionResource(R.dimen.margin_large))
@@ -149,7 +173,8 @@ fun RegisterContent(
                         passwordValue = passwordValue,
                         repeatPasswordValue = repeatPasswordValue,
                         onPasswordValueChanged = onPasswordValueChanged,
-                        isPasswordError = isPasswordError
+                        isPasswordError = isPasswordError,
+                        focusManager = focusManager
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -169,7 +194,10 @@ fun RegisterContent(
                     }
                 }
                 Button(
-                    onClick = onRegisterButtonClicked,
+                    onClick = {
+                        onRegisterButtonClicked()
+                        focusManager.clearFocus()
+                    },
                     shape = RoundedCornerShape(40.dp),
                     enabled = isButtonEnabled,
                     colors = ButtonDefaults.buttonColors(
@@ -192,7 +220,8 @@ fun RegisterContent(
 private fun MainNameAndSurnameSection(
     mainNameValue: String,
     mainSurnameValue: String,
-    onMainNameValueChanged: (String, Boolean) -> Unit
+    onMainNameValueChanged: (String, Boolean) -> Unit,
+    focusManager: FocusManager
 ) {
     Row(
         modifier = Modifier
@@ -206,6 +235,10 @@ private fun MainNameAndSurnameSection(
                     text = stringResource(R.string.name_label)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
             modifier = Modifier
                 .padding(end = dimensionResource(R.dimen.margin_small))
         )
@@ -217,6 +250,10 @@ private fun MainNameAndSurnameSection(
                     text = stringResource(R.string.surname_label)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
         )
     }
 }
@@ -225,7 +262,8 @@ private fun MainNameAndSurnameSection(
 private fun ChildNameAndSurnameSection(
     childNameValue: String,
     childSurnameValue: String,
-    onChildNameChanged: (String, Boolean) -> Unit
+    onChildNameChanged: (String, Boolean) -> Unit,
+    focusManager: FocusManager
 ) {
     Row(
         modifier = Modifier
@@ -239,6 +277,10 @@ private fun ChildNameAndSurnameSection(
                     text = stringResource(R.string.child_name_label_optional)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
             modifier = Modifier
                 .padding(end = dimensionResource(R.dimen.margin_small))
         )
@@ -250,6 +292,10 @@ private fun ChildNameAndSurnameSection(
                     text = stringResource(R.string.child_surname_label_optional)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
         )
     }
 }
@@ -259,7 +305,8 @@ private fun PasswordSection(
     passwordValue: String,
     repeatPasswordValue: String,
     onPasswordValueChanged: (String, Boolean) -> Unit,
-    isPasswordError: Boolean
+    isPasswordError: Boolean,
+    focusManager: FocusManager
 ) {
     Row(
         modifier = Modifier
@@ -274,6 +321,10 @@ private fun PasswordSection(
                     text = stringResource(R.string.password)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .padding(end = dimensionResource(R.dimen.margin_small))
@@ -287,6 +338,10 @@ private fun PasswordSection(
                     text = stringResource(R.string.repeat_password)
                 )
             },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            keyboardActions = KeyboardActions(
+                onDone = { focusManager.clearFocus() }
+            ),
             visualTransformation = PasswordVisualTransformation()
         )
     }
