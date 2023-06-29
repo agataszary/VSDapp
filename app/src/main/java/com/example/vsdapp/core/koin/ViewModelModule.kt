@@ -20,6 +20,6 @@ object ViewModelModule {
             viewModel { SettingsViewModel() }
             viewModel { NavigationViewModel() }
             viewModel { LoginViewModel() }
-            viewModel { RegisterViewModel() }
+            viewModel { RegisterViewModel(get()) }
         }
 }

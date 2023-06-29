@@ -1,16 +1,18 @@
 package com.example.vsdapp.register
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.rememberScrollableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -28,6 +30,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
@@ -43,9 +46,27 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.vsdapp.R
+import com.example.vsdapp.compose.LoadingScreen
+import com.example.vsdapp.core.CloseWithOkResult
+import com.example.vsdapp.core.ShowToast
+import com.example.vsdapp.core.ViewState
+import com.example.vsdapp.core.runEventsCollector
+import com.example.vsdapp.login.LoginActivity
+import com.example.vsdapp.navigationMenu.NavigationActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class RegisterActivity : AppCompatActivity() {
+
+    companion object {
+        fun start(activity: Activity){
+            val intent = Intent(activity, RegisterActivity::class.java)
+            activity.startActivity(intent)
+        }
+
+        fun getIntent(activity: Activity): Intent {
+           return Intent(activity, RegisterActivity::class.java)
+        }
+    }
 
     private val viewModel by viewModel<RegisterViewModel>()
 
@@ -53,31 +74,70 @@ class RegisterActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         setContent { RegisterScreen() }
+
+        setupEventsObserver()
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true){
+            override fun handleOnBackPressed() {
+                LoginActivity.start(this@RegisterActivity)
+                finish()
+            }
+        })
+    }
+
+    private fun setupEventsObserver() {
+        runEventsCollector(viewModel) { event ->
+            when (val payload = event.getContent()) {
+                is ShowToast -> showErrorToast(payload.message)
+                is CloseWithOkResult -> openNavigationActivity()
+            }
+        }
+    }
+
+    private fun openNavigationActivity() {
+        NavigationActivity.start(this)
+        finish()
+    }
+
+    private fun showErrorToast(message: String) {
+        Toast.makeText(
+            this,
+            message,
+            Toast.LENGTH_SHORT,
+        ).show()
     }
 
     @Composable
     fun RegisterScreen() {
-        RegisterContent(
-            emailAddressValue = viewModel.emailAddressValue.value,
-            onEmailAddressValueChanged = { viewModel.onEmailAddressValueChanged(it) },
-            isEmailError = viewModel.isEmailError.value,
-            mainNameValue = viewModel.mainNameValue.value,
-            onMainNameValueChanged = {value, isSurname -> viewModel.onMainNameChanged(value, isSurname) },
-            mainSurnameValue = viewModel.mainSurnameValue.value,
-            childNameValue = viewModel.childNameValue.value,
-            childSurnameValue = viewModel.childSurnameValue.value,
-            onChildNameChanged = {value, isSurname -> viewModel.onChildNameChanged(value, isSurname) },
-            passwordValue = viewModel.passwordValue.value,
-            repeatPasswordValue = viewModel.repeatPasswordValue.value,
-            onPasswordValueChanged = {value, isRepeat -> viewModel.onPasswordValueChanged(value, isRepeat) },
-            isPasswordError = viewModel.isPasswordError.value,
-            therapistAccountChecked = viewModel.therapistAccountIsChecked.value,
-            onTherapistAccountCheckChanged = { viewModel.onTherapistAccountCheckChanged(it) },
-            onRegisterButtonClicked = { viewModel.onRegisterButtonClicked() },
-            isButtonEnabled = viewModel.isButtonEnabled.value,
-            openAlertDialog = viewModel.openAlertDialog.value,
-            changeAlertDialogState = { viewModel.changeAlertDialogState(it) }
-        )
+        Crossfade(targetState = viewModel.viewStateFlow.collectAsState().value) {viewState ->
+            when (viewState) {
+                is ViewState.Progress -> LoadingScreen()
+                is ViewState.Content -> {
+                    RegisterContent(
+                        emailAddressValue = viewModel.emailAddressValue.value,
+                        onEmailAddressValueChanged = { viewModel.onEmailAddressValueChanged(it) },
+                        isEmailError = viewModel.isEmailError.value,
+                        mainNameValue = viewModel.mainNameValue.value,
+                        onMainNameValueChanged = {value, isSurname -> viewModel.onMainNameChanged(value, isSurname) },
+                        mainSurnameValue = viewModel.mainSurnameValue.value,
+                        childNameValue = viewModel.childNameValue.value,
+                        childSurnameValue = viewModel.childSurnameValue.value,
+                        onChildNameChanged = {value, isSurname -> viewModel.onChildNameChanged(value, isSurname) },
+                        passwordValue = viewModel.passwordValue.value,
+                        repeatPasswordValue = viewModel.repeatPasswordValue.value,
+                        onPasswordValueChanged = {value, isRepeat -> viewModel.onPasswordValueChanged(value, isRepeat) },
+                        isPasswordError = viewModel.isPasswordError.value,
+                        therapistAccountChecked = viewModel.therapistAccountIsChecked.value,
+                        onTherapistAccountCheckChanged = { viewModel.onTherapistAccountCheckChanged(it) },
+                        onRegisterButtonClicked = { viewModel.onRegisterButtonClicked() },
+                        isButtonEnabled = viewModel.isButtonEnabled.value,
+                        openAlertDialog = viewModel.openAlertDialog.value,
+                        changeAlertDialogState = { viewModel.changeAlertDialogState(it) }
+                    )
+                }
+                else -> {}
+            }
+        }
     }
 }
 

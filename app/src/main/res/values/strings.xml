@@ -33,4 +33,8 @@
     <string name="create_therapist_account_checkbox">Utwórz konto terapeuty</string>
     <string name="create_therapist_account_alert_title">Tworzysz właśnie konto terapeuty</string>
     <string name="create_therapist_account_alert_body">Zaznaczając to pole utworzysz konto terapeuty. Potwierdź, że właśnie tego chcesz. Jeżeli jesteś tylko użytkownikiem aplikacji, naciśnij Anuluj lub odznacz to pole.</string>
+    <string name="login_error_toast_message">Niepoprawny e-mail lub hasło</string>
+    <string name="dont_remember_password">Nie pamiętam hasła</string>
+    <string name="dont_remember_password_alert_title">Resetowanie hasła</string>
+    <string name="reset_label">Resetuj</string>
 </resources>

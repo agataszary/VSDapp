@@ -5,6 +5,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'kotlin-parcelize'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -87,6 +88,12 @@ dependencies {
     implementation 'androidx.compose.runtime:runtime-tracing:1.0.0-alpha03'
     implementation 'androidx.datastore:datastore-preferences:1.0.0'
     implementation "io.insert-koin:koin-android:3.4.1"
+    implementation platform('com.google.firebase:firebase-bom:32.1.1')
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation "com.google.firebase:firebase-firestore-ktx"
+    implementation group: 'at.favre.lib', name: 'bcrypt', version: '0.10.2'
+
 
     annotationProcessor "androidx.room:room-compiler:2.5.1"
     kapt "androidx.room:room-compiler:2.5.1"

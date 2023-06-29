@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 abstract class ComposeViewModel: BaseViewModel() {
 
-    private val viewStateMutableFlow = MutableStateFlow<ViewState>(ViewState.Empty)
+    private val viewStateMutableFlow = MutableStateFlow<ViewState>(ViewState.Content)
     val viewStateFlow: StateFlow<ViewState> = viewStateMutableFlow
 
     private fun setViewState(viewState: ViewState) {

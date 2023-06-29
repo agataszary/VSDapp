@@ -35,14 +35,7 @@
         <activity
             android:name=".navigationMenu.NavigationActivity"
             android:screenOrientation="landscape"
-            android:exported="true"
-            android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:theme="@style/AppTheme"/>
 
         <activity
             android:name=".editMode.EditModeActivity"
@@ -68,7 +61,14 @@
             android:name=".login.LoginActivity"
             android:screenOrientation="landscape"
             android:windowSoftInputMode="adjustResize"
-            android:theme="@style/AppTheme"/>
+            android:exported="true"
+            android:theme="@style/AppTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".register.RegisterActivity"
             android:screenOrientation="landscape"

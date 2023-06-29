@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "908466054470",
+    "project_id": "vsdapp-6b45f",
+    "storage_bucket": "vsdapp-6b45f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:908466054470:android:1a69005138d06cae5d3147",
+        "android_client_info": {
+          "package_name": "com.example.vsdapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "908466054470-2cv8c5kaf5g5o3memijhrt2ppk8t7alm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDyoeLijnChMTkvjRquzJgdkZDDk-tnTqo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "908466054470-2cv8c5kaf5g5o3memijhrt2ppk8t7alm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

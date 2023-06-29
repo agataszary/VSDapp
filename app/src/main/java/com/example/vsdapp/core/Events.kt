@@ -11,3 +11,6 @@ class SaveImageAndOpenReadMode(val fileLocation: String, val bitmap: Bitmap, val
 class DeleteScene(val scene: Scene)
 object CloseWithOkResult
 class ChangePictogramsVisibility(val visible: Boolean)
+object OpenNavigationActivity
+class ShowToast(val message: String)
+object OpenRegisterActivity
