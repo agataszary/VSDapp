@@ -1,5 +1,7 @@
 package com.example.vsdapp.navigationMenu
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import androidx.activity.OnBackPressedCallback
@@ -21,14 +23,25 @@ import com.example.vsdapp.R
 import com.example.vsdapp.compose.LoadingScreen
 import com.example.vsdapp.compose.MenuButton
 import com.example.vsdapp.core.AppMode
+import com.example.vsdapp.core.Constants
 import com.example.vsdapp.core.ViewState
 import com.example.vsdapp.editMode.EditModeActivity
 import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.gallery.GalleryActivity
+import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.settings.SettingsActivity
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class NavigationActivity: AppCompatActivity() {
+
+    companion object {
+        fun start(activity: Activity) {
+            val intent = Intent(activity, NavigationActivity::class.java)
+            activity.startActivity(intent)
+        }
+    }
 
     val viewModel by viewModel<NavigationViewModel>()
 

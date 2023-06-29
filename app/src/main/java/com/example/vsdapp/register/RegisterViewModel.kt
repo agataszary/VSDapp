@@ -2,9 +2,17 @@ package com.example.vsdapp.register
 
 import android.util.Patterns
 import androidx.compose.runtime.mutableStateOf
+import com.example.vsdapp.core.CloseWithOkResult
 import com.example.vsdapp.core.ComposeViewModel
+import com.example.vsdapp.core.ShowToast
+import com.example.vsdapp.models.UserModel
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import java.security.MessageDigest
 
-class RegisterViewModel : ComposeViewModel() {
+class RegisterViewModel(private val repository: RegisterRepository) : ComposeViewModel() {
 
     var emailAddressValue = mutableStateOf("")
         private set
@@ -32,6 +40,8 @@ class RegisterViewModel : ComposeViewModel() {
     var openAlertDialog = mutableStateOf(false)
         private set
 
+    var auth : FirebaseAuth = Firebase.auth
+
     fun onEmailAddressValueChanged(value: String) {
         emailAddressValue.value = value
         isEmailError.value = !Patterns.EMAIL_ADDRESS.matcher(value).matches()
@@ -57,6 +67,37 @@ class RegisterViewModel : ComposeViewModel() {
 
     fun onRegisterButtonClicked() {
         if (passwordValue.value != repeatPasswordValue.value) isPasswordError.value = true
+
+        if (!isPasswordError.value && !isEmailError.value) {
+            showProgress()
+            auth.createUserWithEmailAndPassword(emailAddressValue.value, passwordValue.value)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        if (user != null) {
+                            val newUser = UserModel(
+                                userId = user.uid,
+                                mainName = mainNameValue.value,
+                                mainSurname = mainSurnameValue.value,
+                                childName = childNameValue.value,
+                                childSurname = childSurnameValue.value,
+                                emailAddress = emailAddressValue.value,
+                                therapistAccount = therapistAccountIsChecked.value,
+                                password = passwordValue.value
+                            )
+                            repository.addNewUser(newUser)
+                                .addOnSuccessListener { sendEvent(CloseWithOkResult) }
+                                .addOnFailureListener {
+                                    showContent()
+                                    sendEvent(ShowToast("Rejestracja nie powiodła się, spróbuj ponownie"))
+                                }
+                        }
+                    } else {
+                        showContent()
+                        sendEvent(ShowToast("Rejestracja nie powiodła się, spróbuj ponownie"))
+                    }
+                }
+        }
     }
 
     private fun checkFields(): Boolean {
