@@ -14,3 +14,5 @@ class ChangePictogramsVisibility(val visible: Boolean)
 object OpenNavigationActivity
 class ShowToast(val message: String)
 object OpenRegisterActivity
+object AskForPassword
+object OpenSettings
