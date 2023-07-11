@@ -17,8 +17,8 @@ object ViewModelModule {
             viewModel { EditModeViewModel(get()) }
             viewModel { GalleryViewModel() }
             viewModel { ReadModeViewModel() }
-            viewModel { SettingsViewModel() }
-            viewModel { NavigationViewModel() }
+            viewModel { SettingsViewModel(get()) }
+            viewModel { NavigationViewModel(get()) }
             viewModel { LoginViewModel() }
             viewModel { RegisterViewModel(get()) }
         }

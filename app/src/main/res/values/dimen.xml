@@ -7,4 +7,5 @@
     <dimen name="text_size">12sp</dimen>
     <dimen name="search_column_width">300dp</dimen>
     <dimen name="small_icon_size">20dp</dimen>
+    <dimen name="settings_buttons_width">140dp</dimen>
 </resources>

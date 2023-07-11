@@ -1,7 +1,9 @@
 package com.example.vsdapp.core.koin
 
 import com.example.vsdapp.editMode.EditModeRepository
+import com.example.vsdapp.navigationMenu.NavigationRepository
 import com.example.vsdapp.register.RegisterRepository
+import com.example.vsdapp.settings.SettingsRepository
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -10,5 +12,7 @@ object RepositoryModule {
         get() = module {
             factory { EditModeRepository() }
             factory { RegisterRepository() }
+            factory { SettingsRepository() }
+            factory { NavigationRepository() }
         }
 }

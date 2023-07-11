@@ -1,12 +1,12 @@
 package com.example.vsdapp.models
 
 data class UserModel(
-    val userId: String,
-    val mainName: String,
-    val mainSurname: String,
-    val childName: String? = null,
-    val childSurname: String? = null,
-    val emailAddress: String,
-    val therapistAccount: Boolean,
-    val password: String
+    var userId: String = "",
+    var mainName: String = "",
+    var mainSurname: String = "",
+    var childName: String? = null,
+    var childSurname: String? = null,
+    var emailAddress: String = "",
+    var therapistAccount: Boolean = false,
+    var password: String = ""
 )

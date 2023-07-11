@@ -9,7 +9,7 @@ import com.google.firebase.firestore.DocumentReference
 
 class RegisterRepository: BaseRepository() {
 
-    fun addNewUser(user: UserModel): Task<DocumentReference> {
+    fun addNewUser(user: UserModel): Task<Void> {
         val hashedPassword = BCrypt.withDefaults().hashToString(12, user.password.toCharArray())
         val preparedUser = user.copy(
             password = hashedPassword,
@@ -17,7 +17,8 @@ class RegisterRepository: BaseRepository() {
             childSurname = convertEmptyStringToNull(user.childSurname)
         )
         return firestoreDb.collection("users")
-            .add(preparedUser)
+            .document(preparedUser.userId)
+            .set(preparedUser)
     }
 
     private fun convertEmptyStringToNull(value: String?): String? {
