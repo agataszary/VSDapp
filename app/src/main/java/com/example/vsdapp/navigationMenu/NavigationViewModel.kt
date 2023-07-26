@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class NavigationViewModel(val repository: NavigationRepository): ComposeViewModel() {
+class NavigationViewModel(private val repository: NavigationRepository): ComposeViewModel() {
 
     var appMode = mutableStateOf(AppMode.NONE)
     var shouldShowAskForPasswordDialog = mutableStateOf(false)

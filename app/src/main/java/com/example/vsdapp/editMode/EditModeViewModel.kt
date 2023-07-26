@@ -1,8 +1,12 @@
 package com.example.vsdapp.editMode
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -13,9 +17,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.*
-import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
+import com.example.vsdapp.database.StorageRepository
 import com.example.vsdapp.models.GetIconsModel
+import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.views.PictogramDetails
 import com.example.vsdapp.views.PictogramView
 import com.squareup.picasso.Picasso
@@ -23,15 +28,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
 
-class EditModeViewModel(private val repository: EditModeRepository): DataBindingViewModel() {
+class EditModeViewModel(
+    private val editRepository: EditModeRepository,
+    private val storageRepository: StorageRepository
+    ): DataBindingViewModel() {
 
     private lateinit var sceneDao: SceneDao
-    private lateinit var filesLocation: File
     private lateinit var mode: EditModeType
-    private lateinit var scene: Scene
+    private lateinit var scene: SceneDetails
+    private var sceneToUpdateId = ""
 
     val searchInput = mutableStateOf("")
     val titleInput = mutableStateOf("")
@@ -63,31 +73,40 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
     private val iconsOnPicture = mutableMapOf<Int, PictogramDetails>()
     private val pictogramViewsMap = mutableMapOf<Int, PictogramView>()
 
-    fun setInitialData(sceneDao: SceneDao, filesLocation: File, mode: EditModeType, sceneId: Long?, imageLocation: Uri?, view: View, context: Context, bitmap: Bitmap?) {
+    fun setInitialData(sceneDao: SceneDao, mode: EditModeType, sceneId: String?, imageLocation: String?, view: View, context: Context, contentResolver: ContentResolver) {
         showProgress()
         this.sceneDao = sceneDao
-        this.filesLocation = filesLocation
         this.mode = mode
 
-        if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null && bitmap != null) {
-            setupUpdateMode(sceneId, imageLocation, view, context, bitmap)
+        if (mode == EditModeType.UPDATE_MODE && sceneId != null && imageLocation != null) {
+            setupUpdateMode(sceneId, imageLocation, view, context, contentResolver)
         } else {
             showContent()
         }
 
     }
 
-    private fun setupUpdateMode(sceneId: Long, imageLocation: Uri, view: View, context: Context, bitmap: Bitmap) {
+    private fun setupUpdateMode(sceneId: String, imageLocation: String, view: View, context: Context, contentResolver: ContentResolver) {
         viewModelScope.launch(Dispatchers.Main) {
 
-            selectedPictureMutableData.value = imageLocation
-            selectedPictureVisibilityMutableData.value = View.VISIBLE
-            searchButtonEnabledMutableFlow.value = true
+            sceneToUpdateId = sceneId
 
-            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
+            scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
 
-            titleInput.value = scene.imageName
+            val (imageTask, imageUri) = withContext(Dispatchers.IO) { storageRepository.getImage(imageLocation) }
+            imageTask
+                .addOnSuccessListener {
+                    selectedPictureMutableData.value = imageUri
+                    selectedPictureVisibilityMutableData.value = View.VISIBLE
+                    searchButtonEnabledMutableFlow.value = true
+                }
+                .addOnFailureListener { println("Failureeeee ${it.message}") }
+                .await()
+
+            titleInput.value = scene.title
             showPictograms(view, context)
+
+            val bitmap = uriToBitmap(imageUri, contentResolver)
 
             bitmapDetails = AspectRatioDetails(
                 width = bitmap.width.toFloat(),
@@ -138,6 +157,17 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
         }
     }
 
+    private fun uriToBitmap(photoUri: Uri, contentResolver: ContentResolver): Bitmap {
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(contentResolver, photoUri)
+            ImageDecoder.decodeBitmap(source)
+        } else {
+            MediaStore.Images.Media.getBitmap(contentResolver, photoUri)
+        }
+
+        return bitmap
+    }
+
     fun onBackClicked() {
         sendEvent(CloseActivity)
     }
@@ -158,7 +188,7 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
         iconClickedMutableFlow.value = ""
         viewModelScope.launch(Dispatchers.Main) {
             val listOfIcons = mutableListOf<String>()
-            iconsFromSearch = withContext(Dispatchers.IO) { repository.getIcons(searchInput.value) }
+            iconsFromSearch = withContext(Dispatchers.IO) { editRepository.getIcons(searchInput.value) }
             shouldShowNoResultsDisclaimer.value = iconsFromSearch.isEmpty()
             iconsFromSearch.forEach { icon ->
                 listOfIcons.add(Constants.URL_PICTOGRAMS + icon._id)
@@ -185,36 +215,45 @@ class EditModeViewModel(private val repository: EditModeRepository): DataBinding
                 iconsOnPicture[id]?.viewHeight = pictogramViewsMap[id]?.viewHeight ?: RelativeLayout.LayoutParams.WRAP_CONTENT
             }
             if (mode == EditModeType.CREATE_MODE) {
-                var counter = 0
-                val locations = withContext(Dispatchers.IO) { sceneDao.getAll().map { it.imageLocation } }
-                var imageLocation = titleInput.value.replace("\\s+".toRegex(), "_")
 
-                while (locations.contains("$imageLocation.jpg")) {
-                    imageLocation.dropLast(1)
-                    imageLocation += counter.toString()
-                    counter += 1
-                }
+                val imageLocation = titleInput.value.replace("\\s+".toRegex(), "_") + "_" + SimpleDateFormat("yyyyMMddHHmmss").format(Date()) + ".jpg"
 
-                imageLocation += ".jpg"
+                var sceneId = ""
 
-                val scene = Scene(
-                    imageName = titleInput.value,
+                val imageUrl = withContext(Dispatchers.IO) { editRepository.saveBackgroundImage(imageLocation, selectedPictureMutableData.value!!) }
+
+                val sceneDetails = SceneDetails(
+                    title = titleInput.value,
                     imageLocation = imageLocation,
-                    pictograms = iconsOnPicture.values.toList()
+                    pictograms = iconsOnPicture.values.toList(),
+                    imageUrl = imageUrl.toString()
                 )
 
-                val sceneId = withContext(Dispatchers.IO) { sceneDao.insert(scene) }
-                sendEvent(SaveImageAndOpenReadMode(imageLocation, selectedPictureBitmap!!, sceneId))
+                val (task, docId) = withContext(Dispatchers.IO) { editRepository.saveSceneDetails(sceneDetails) }
+                task
+                    .addOnSuccessListener {
+                        sceneId = docId
+                        sendEvent(OpenReadMode(imageLocation, sceneId))
+                    }
+                    .addOnFailureListener { println("Failureeeee ${it.message}") }
 
             } else {
-                val sceneToUpdate = Scene(
-                    id = scene.id,
-                    imageName = titleInput.value,
+                val sceneToUpdate = SceneDetails(
+                    title = titleInput.value,
                     imageLocation = scene.imageLocation,
-                    pictograms = iconsOnPicture.values.toList()
+                    pictograms = iconsOnPicture.values.toList(),
+                    userId = scene.userId,
+                    imageUrl = scene.imageUrl,
+                    id = sceneToUpdateId
                 )
-                withContext(Dispatchers.IO) { sceneDao.update(sceneToUpdate) }
-                sendEvent(CloseWithOkResult)
+
+                withContext(Dispatchers.IO) { editRepository.updateSceneDetails(sceneToUpdateId, sceneToUpdate) }
+                    .addOnSuccessListener {
+                        println("Updateeeed")
+                        sendEvent(CloseWithOkResult)
+                    }
+                    .addOnFailureListener { println("Failureeeeee ${it.message}") }
+                    .await()
             }
         }
     }

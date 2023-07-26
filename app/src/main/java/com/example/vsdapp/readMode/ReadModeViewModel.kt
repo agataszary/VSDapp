@@ -20,14 +20,17 @@ import com.example.vsdapp.core.DataBindingViewModel
 import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
+import com.example.vsdapp.database.StorageRepository
+import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.views.ReadPictogramView
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.util.Properties
 
-class ReadModeViewModel: DataBindingViewModel() {
+class ReadModeViewModel(private val storageRepository: StorageRepository): DataBindingViewModel() {
 
     private val selectedPictureVisibilityMutableData = MutableLiveData(View.GONE)
     val selectedPictureVisibilityData: LiveData<Int> = selectedPictureVisibilityMutableData
@@ -39,28 +42,32 @@ class ReadModeViewModel: DataBindingViewModel() {
         private set
     var appMode = mutableStateOf(AppMode.NONE)
 
-    private lateinit var scene: Scene
-    private var sceneId = 0L
+    private lateinit var scene: SceneDetails
+    private var sceneId = ""
     private lateinit var sceneDao: SceneDao
     private lateinit var tts: TextToSpeech
 
-    fun loadInitialData(sceneId: Long, db: SceneDao, photoUri: Uri?, view: View, context: Context, textToSpeech: TextToSpeech){
+    fun loadInitialData(sceneId: String, db: SceneDao, view: View, context: Context, textToSpeech: TextToSpeech, imageLocation: String){
         showProgress()
 
         this.sceneDao = db
         this.tts = textToSpeech
         this.sceneId = sceneId
-
-        if (photoUri != null){
-            selectedPictureMutableData.value = photoUri
-            selectedPictureVisibilityMutableData.value = View.VISIBLE
-        }
-
+        
         viewModelScope.launch(Dispatchers.Main) {
-            scene = withContext(Dispatchers.IO) { sceneDao.getSceneById(sceneId) }
+            scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
             appMode.value = withContext(Dispatchers.IO){ dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY) }
-            showPictograms(view, context)
 
+            val (imageTask, imageUri) = withContext(Dispatchers.IO) { storageRepository.getImage(imageLocation) }
+            imageTask
+                .addOnSuccessListener {
+                    selectedPictureMutableData.value = imageUri
+                    selectedPictureVisibilityMutableData.value = View.VISIBLE
+                }
+                .addOnFailureListener { println("Failureeeee ${it.message}") }
+                .await()
+
+            showPictograms(view, context)
         }
 
     }
