@@ -14,9 +14,9 @@ import org.koin.dsl.module
 object ViewModelModule {
     val get: Module
         get() = module {
-            viewModel { EditModeViewModel(get()) }
-            viewModel { GalleryViewModel() }
-            viewModel { ReadModeViewModel() }
+            viewModel { EditModeViewModel(get(), get()) }
+            viewModel { GalleryViewModel(get()) }
+            viewModel { ReadModeViewModel(get()) }
             viewModel { SettingsViewModel(get()) }
             viewModel { NavigationViewModel(get()) }
             viewModel { LoginViewModel() }

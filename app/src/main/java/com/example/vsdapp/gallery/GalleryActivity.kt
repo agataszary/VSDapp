@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -44,8 +46,10 @@ import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.core.net.toUri
 import com.example.vsdapp.compose.NoResultsDisclaimer
 import com.example.vsdapp.core.AppMode
+import com.example.vsdapp.models.SceneDetails
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GalleryActivity: AppCompatActivity(){
@@ -71,10 +75,7 @@ class GalleryActivity: AppCompatActivity(){
             when (viewModel.viewStateFlow.collectAsState().value) {
                is ViewState.Content ->  GalleryScreen(
                    onBackButtonClicked = { finish() },
-                   onSceneClicked = { onSceneClicked(it) },
-                   getImageFromInternalStorage =  {name ->
-                       loadPhotoFromInternalStorage(name)
-                   }
+                   onSceneClicked = { onSceneClicked(it) }
                )
                 is ViewState.Progress -> LoadingScreen()
                 else -> {}
@@ -97,7 +98,7 @@ class GalleryActivity: AppCompatActivity(){
         }
     }
 
-    private fun onSceneClicked(scene: Scene) {
+    private fun onSceneClicked(scene: SceneDetails) {
         ReadModeActivity.start(this, scene.id, scene.imageLocation)
     }
 
@@ -110,23 +111,10 @@ class GalleryActivity: AppCompatActivity(){
         }
     }
 
-    private  fun loadPhotoFromInternalStorage(filename: String): Bitmap? {
-        val files = filesDir.listFiles { file ->
-            file.canRead() && file.isFile && file.name == filename
-        }
-        return if (files != null && files.size == 1) {
-            val bytes = files[0].readBytes()
-            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-        } else {
-            null
-        }
-    }
-
     @Composable
     fun GalleryScreen(
         onBackButtonClicked: () -> Unit,
-        onSceneClicked: (Scene) -> Unit,
-        getImageFromInternalStorage: (String) -> Bitmap?,
+        onSceneClicked: (SceneDetails) -> Unit,
     ) {
 //    val scenesList: List<Scene> by viewModel.scenesListFlow.collectAsState(listOf())
 
@@ -137,7 +125,6 @@ class GalleryActivity: AppCompatActivity(){
             onSearchButtonClicked = { viewModel.onSearchButtonClicked() },
             scenesList = viewModel.scenesList.value,
             onSceneClicked = { onSceneClicked(it) },
-            getImageFromInternalStorage = { getImageFromInternalStorage(it) },
             onDeleteSceneClicked = { viewModel.onDeleteSceneClicked(it) },
             changeAlertDialogState = { viewModel.changeAlertDialogState(it) },
             openAlertDialog = viewModel.openAlertDialog.value,
@@ -157,11 +144,10 @@ fun GalleryContent(
     searchText: String,
     onSearchStringChanged: (String) -> Unit,
     onSearchButtonClicked: () -> Unit,
-    scenesList: List<Scene>,
-    onSceneClicked: (Scene) -> Unit,
-    getImageFromInternalStorage: ((String) -> Bitmap?)? = null,
+    scenesList: List<SceneDetails>,
+    onSceneClicked: (SceneDetails) -> Unit,
     openAlertDialog: Boolean,
-    onDeleteSceneClicked: (Scene) -> Unit,
+    onDeleteSceneClicked: (SceneDetails) -> Unit,
     changeAlertDialogState: (Boolean) -> Unit,
     onConfirmDeleteClicked: () -> Unit,
     appMode: AppMode,
@@ -272,12 +258,14 @@ fun GalleryContent(
                     )
                 }
             } else {
-                LazyColumn {
+                LazyColumn(
+                    state = rememberLazyListState()
+                ) {
                     items(
                         items = scenesList,
                         key = { it.id }
                     ) { scene ->
-                        val image = remember { getImageFromInternalStorage?.let { it(scene.imageLocation) } }
+                        val image = remember { scene.imageUrl.toUri() }
                         Card(
                             border = BorderStroke(
                                 width = 2.dp,
@@ -299,7 +287,7 @@ fun GalleryContent(
                                 modifier = Modifier
                                     .border(1.dp, Color.Black)
                                 ) {
-                                    if (getImageFromInternalStorage != null) {
+                                    if (image != Uri.EMPTY) {
                                         Image(
                                             painter = rememberImagePainter(image),
                                             contentDescription = null,
@@ -316,7 +304,7 @@ fun GalleryContent(
                                     }
                                 }
                                 Text(
-                                    text = scene.imageName,
+                                    text = scene.title,
                                     modifier = Modifier
                                         .padding(start = 16.dp)
                                         .weight(1f)
@@ -356,8 +344,8 @@ fun GalleryContentPreview() {
         onSearchStringChanged = { },
         onSearchButtonClicked = {  },
         scenesList = listOf(
-            Scene(id = 1, imageName = "obraz1", imageLocation = "url", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300))),
-            Scene(id = 2, imageName = "obraz2", imageLocation = "url2", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300)))
+            SceneDetails(id = "1", title = "obraz1", imageLocation = "url", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300))),
+            SceneDetails(id = "2", title = "obraz2", imageLocation = "url2", pictograms = listOf(PictogramDetails(imageUrl = "url", x = 1, y = 1, label = "label", imageSize = 200, viewWidth = 216, viewHeight = 300)))
         ),
         onSceneClicked = {},
         onDeleteSceneClicked = {},

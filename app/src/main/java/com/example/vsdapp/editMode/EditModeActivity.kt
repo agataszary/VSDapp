@@ -15,16 +15,13 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.DragEvent
 import android.view.View
-import android.view.View.DragShadowBuilder
 import android.widget.RelativeLayout
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.stringResource
-import androidx.core.net.toUri
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import com.example.vsdapp.R
 import com.example.vsdapp.compose.SearchIconsColumn
 import com.example.vsdapp.compose.TopNavBar
@@ -40,7 +37,7 @@ import java.util.*
 class EditModeActivity : AppCompatActivity() {
 
     companion object {
-        fun start(activity: Activity, mode: EditModeType, sceneId: Int? = null, imageLocation: String? = null){
+        fun start(activity: Activity, mode: EditModeType, sceneId: String? = null, imageLocation: String? = null){
             val intent = Intent(activity, EditModeActivity::class.java)
                 .putExtra(Constants.EDIT_MODE_TYPE, mode)
                 .putExtra(Constants.INTENT_SCENE, sceneId)
@@ -98,19 +95,17 @@ class EditModeActivity : AppCompatActivity() {
 
 
         val mode = intent.getSerializableExtra(Constants.EDIT_MODE_TYPE) as EditModeType
-        val sceneId = intent.getLongExtra(Constants.INTENT_SCENE, 0L)
+        val sceneId = intent.getStringExtra(Constants.INTENT_SCENE)
         val imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)
-        val imageUri = if(imageLocation != null) loadPhotoFromInternalStorage(imageLocation) else null
 
         viewModel.setInitialData(
             sceneDao = db.sceneDao,
-            filesLocation = filesDir,
             mode = mode,
             sceneId = sceneId,
-            imageLocation =  imageUri,
+            imageLocation =  imageLocation,
             view = binding.relativeLayoutAtEditMode,
             context = this,
-            bitmap = if (mode == EditModeType.UPDATE_MODE && imageUri != null) uriToBitmap(imageUri) else null
+            contentResolver = contentResolver
         )
 
         binding.composeTopNavBar.setContent {
@@ -174,8 +169,7 @@ class EditModeActivity : AppCompatActivity() {
                     setResult(Activity.RESULT_OK)
                     finish()
                 }
-                is SaveImageAndOpenReadMode -> {
-                    saveImageToInternalStorage(payload.fileLocation, payload.bitmap)
+                is OpenReadMode -> {
                     openReadMode(payload.sceneId, payload.fileLocation)
                 }
             }
@@ -262,32 +256,9 @@ class EditModeActivity : AppCompatActivity() {
 //        }
     }
 
-    private fun saveImageToInternalStorage(filename: String, bitmap: Bitmap) {
-        try {
-            openFileOutput(filename, MODE_PRIVATE).use { stream ->
-                if(!bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)) {
-                    throw IOException("Couldn't save bitmap")
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun openReadMode(sceneId: Long, imageLocation: String){
+    private fun openReadMode(sceneId: String, imageLocation: String){
         ReadModeActivity.start(this, sceneId, imageLocation)
         finish()
-    }
-
-    private fun loadPhotoFromInternalStorage(filename: String): Uri? {
-        val files = filesDir.listFiles { file ->
-            file.canRead() && file.isFile && file.name == filename
-        }
-        return if (files != null && files.size == 1) {
-            files[0].toUri()
-        } else {
-            null
-        }
     }
 
     private fun uriToBitmap(photoUri: Uri): Bitmap {

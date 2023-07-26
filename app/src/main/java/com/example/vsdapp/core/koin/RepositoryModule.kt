@@ -1,5 +1,6 @@
 package com.example.vsdapp.core.koin
 
+import com.example.vsdapp.database.StorageRepository
 import com.example.vsdapp.editMode.EditModeRepository
 import com.example.vsdapp.navigationMenu.NavigationRepository
 import com.example.vsdapp.register.RegisterRepository
@@ -14,5 +15,6 @@ object RepositoryModule {
             factory { RegisterRepository() }
             factory { SettingsRepository() }
             factory { NavigationRepository() }
+            factory { StorageRepository() }
         }
 }

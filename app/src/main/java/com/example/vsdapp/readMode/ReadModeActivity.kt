@@ -32,7 +32,7 @@ import java.util.*
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
-        fun start(activity: Activity, sceneId: Long, imageLocation: String) {
+        fun start(activity: Activity, sceneId: String, imageLocation: String) {
             val intent = Intent(activity, ReadModeActivity::class.java)
                 .putExtra(Constants.INTENT_SCENE, sceneId)
                 .putExtra(Constants.IMAGE_LOCATION, imageLocation)
@@ -44,7 +44,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
     private lateinit var binding: ActivityReadModeBinding
     lateinit var tts: TextToSpeech
     lateinit var imageLocation: String
-    var scene = 0L
+    var scene = ""
 
     private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -62,17 +62,17 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         binding.lifecycleOwner = this
         binding.viewModel = viewModel
 
-        scene = intent.getLongExtra(Constants.INTENT_SCENE, 0)
+        scene = intent.getStringExtra(Constants.INTENT_SCENE)!!
         imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
         val db = AppDatabase.getInstance(this)
 
         viewModel.loadInitialData(
             sceneId = scene,
             db = db.sceneDao,
-            photoUri = loadPhotoFromInternalStorage(imageLocation),
             view = binding.relativeLayoutAtReadMode,
             context = this,
-            textToSpeech = tts
+            textToSpeech = tts,
+            imageLocation = imageLocation
         )
 
         binding.readModeTopNavBar.setContent {
@@ -130,18 +130,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun loadPhotoFromInternalStorage(filename: String): Uri? {
-        val files = filesDir.listFiles { file ->
-            file.canRead() && file.isFile && file.name == filename
-        }
-        return if (files != null && files.size == 1) {
-            files[0].toUri()
-        } else {
-            null
-        }
-    }
-
-    private fun openEditModeScreen(sceneId: Long, imageLocation: String) {
+    private fun openEditModeScreen(sceneId: String, imageLocation: String) {
         val intent = Intent(this, EditModeActivity::class.java)
             .putExtra(Constants.EDIT_MODE_TYPE, EditModeType.UPDATE_MODE)
             .putExtra(Constants.INTENT_SCENE, sceneId)

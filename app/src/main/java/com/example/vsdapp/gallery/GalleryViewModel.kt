@@ -1,34 +1,27 @@
 package com.example.vsdapp.gallery
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.AppMode
-import com.example.vsdapp.core.BaseViewModel
 import com.example.vsdapp.core.ComposeViewModel
-import com.example.vsdapp.core.DeleteScene
 import com.example.vsdapp.core.PreferencesDataStore
-import com.example.vsdapp.database.AppDatabase
-import com.example.vsdapp.database.Scene
 import com.example.vsdapp.database.SceneDao
+import com.example.vsdapp.database.StorageRepository
+import com.example.vsdapp.models.SceneDetails
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class GalleryViewModel: ComposeViewModel() {
+class GalleryViewModel(private val storageRepository: StorageRepository): ComposeViewModel() {
 
     private lateinit var sceneDao: SceneDao
 
     val searchInput = mutableStateOf("")
 
-//    private val scenesListMutableFlow = MutableStateFlow<List<Scene>>(listOf())
-//    val scenesListFlow: StateFlow<List<Scene>> = scenesListMutableFlow
-
-    var scenesList = mutableStateOf<List<Scene>>(listOf())
+    var scenesList = mutableStateOf<List<SceneDetails>>(listOf())
         private set
+
+    private var userScenes: List<SceneDetails> = listOf()
 
     var openAlertDialog = mutableStateOf(false)
         private set
@@ -38,7 +31,7 @@ class GalleryViewModel: ComposeViewModel() {
 
     val shouldShowNoResultsDisclaimer = mutableStateOf(false)
 
-    private var sceneToDelete: Scene? = null
+    private var sceneToDelete: SceneDetails? = null
 
     fun setInitialData(sceneDao: SceneDao) {
         this.sceneDao = sceneDao
@@ -47,50 +40,43 @@ class GalleryViewModel: ComposeViewModel() {
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
-//            withContext(Dispatchers.IO){ scenesListMutableFlow.value = sceneDao.getAll() }
             showProgress()
-            withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll().toMutableList() }
+            scenesList.value = withContext(Dispatchers.IO) { storageRepository.getAllScenesDetails() }
+            userScenes = scenesList.value
             appMode.value = withContext(Dispatchers.IO) {dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY)}
         }.invokeOnCompletion { showContent() }
     }
 
     fun onSearchButtonClicked() {
         viewModelScope.launch(Dispatchers.Main) {
-            val sceneList = withContext(Dispatchers.IO){ sceneDao.getSceneByTitle(searchInput.value) }
-            if (sceneList != null) {
-                scenesList.value = sceneList
-            } else {
-                scenesList.value = listOf()
-            }
-            shouldShowNoResultsDisclaimer.value = sceneList.isNullOrEmpty()
+            val sceneList = userScenes.filter { it.title.contains(searchInput.value) }
+            scenesList.value = sceneList
+            shouldShowNoResultsDisclaimer.value = sceneList.isEmpty()
         }
     }
 
     fun onSearchStringChanged(newSearch: String) {
-        viewModelScope.launch(Dispatchers.Main) {
-            if (newSearch.isNotBlank() || (newSearch.isBlank() && searchInput.value != "")){
-                searchInput.value = newSearch
-                if (searchInput.value == "") {
-                    withContext(Dispatchers.IO){ scenesList.value = sceneDao.getAll() }
-                    shouldShowNoResultsDisclaimer.value = false
-                }
+        if (newSearch.isNotBlank() || (newSearch.isBlank() && searchInput.value != "")){
+            searchInput.value = newSearch
+            if (searchInput.value == "") {
+                scenesList.value = userScenes
+                shouldShowNoResultsDisclaimer.value = false
             }
         }
     }
 
-    fun onDeleteSceneClicked(scene: Scene){
+    fun onDeleteSceneClicked(scene: SceneDetails){
         openAlertDialog.value = true
         sceneToDelete = scene
     }
 
-    private fun deleteScene(scene: Scene) {
+    private fun deleteScene(scene: SceneDetails) {
         viewModelScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO){
-                sceneDao.delete(scene)
-//                scenesList.value.remove(scene)
-                scenesList.value = scenesList.value.filter { it != scene }
+                storageRepository.deleteScene(scene.id, scene.imageLocation)
+                userScenes = userScenes.filter { it.id != scene.id}
+                scenesList.value = userScenes
             }
-            sendEvent(DeleteScene(scene))
         }
     }
 

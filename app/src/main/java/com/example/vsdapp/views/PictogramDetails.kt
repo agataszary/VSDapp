@@ -5,13 +5,13 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class PictogramDetails(
-    val imageUrl: String,
-    var x: Int,
-    var y: Int,
-    var label: String,
+    val imageUrl: String = "",
+    var x: Int = 0,
+    var y: Int = 0,
+    var label: String = "",
     var xRead: Int? = null,
     var yRead: Int? = null,
-    var imageSize: Int,
-    var viewWidth: Int ,
-    var viewHeight: Int
+    var imageSize: Int = 0,
+    var viewWidth: Int = 0,
+    var viewHeight: Int = 0
 ): Parcelable
