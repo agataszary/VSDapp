@@ -60,6 +60,7 @@ import com.example.vsdapp.editMode.EditModeType
 import com.example.vsdapp.gallery.GalleryActivity
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.settings.SettingsActivity
+import com.example.vsdapp.students.StudentsActivity
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -92,7 +93,8 @@ class NavigationActivity: AppCompatActivity() {
                     shouldShowAskForPasswordDialog = viewModel.shouldShowAskForPasswordDialog.value,
                     changeDialogState = { viewModel.changeDialogState(it) },
                     passwordValue = viewModel.passwordValue.value,
-                    onPasswordValueChange = { viewModel.onPasswordValueChanged(it) }
+                    onPasswordValueChange = { viewModel.onPasswordValueChanged(it) },
+                    onStudentsButtonClicked = { openStudentsScreen() }
                 )
                 is ViewState.Progress -> LoadingScreen()
                 else -> {}
@@ -133,6 +135,10 @@ class NavigationActivity: AppCompatActivity() {
         SettingsActivity.start(this)
     }
 
+    private fun openStudentsScreen() {
+        StudentsActivity.start(this)
+    }
+
     private fun showToast(message: String) {
         Toast.makeText(
             this,
@@ -161,7 +167,8 @@ fun NavigationMenuScreen(
     shouldShowAskForPasswordDialog: Boolean,
     changeDialogState: (Boolean) -> Unit,
     passwordValue: String,
-    onPasswordValueChange: (String) -> Unit
+    onPasswordValueChange: (String) -> Unit,
+    onStudentsButtonClicked: () -> Unit
 ) {
 
     NavigationMenuContent(
@@ -172,7 +179,8 @@ fun NavigationMenuScreen(
         shouldShowAskForPasswordDialog = shouldShowAskForPasswordDialog,
         changeDialogState = changeDialogState,
         passwordValue = passwordValue,
-        onPasswordValueChange = onPasswordValueChange
+        onPasswordValueChange = onPasswordValueChange,
+        onStudentsButtonClicked = onStudentsButtonClicked
     )
 }
 
@@ -181,6 +189,7 @@ fun NavigationMenuContent(
     onGalleryButtonClicked: () -> Unit,
     onEditModeButtonClicked: () -> Unit,
     onSettingsButtonClicked: () -> Unit,
+    onStudentsButtonClicked: () -> Unit,
     appMode: AppMode,
     shouldShowAskForPasswordDialog: Boolean,
     changeDialogState: (Boolean) -> Unit,
@@ -227,11 +236,19 @@ fun NavigationMenuContent(
                     onButtonClicked = onGalleryButtonClicked
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                if (appMode == AppMode.PARENTAL_MODE) {
+                if (appMode != AppMode.CHILD_MODE) {
                     MenuButton(
                         image = R.drawable.baseline_edit_24,
                         text = R.string.go_to_edit_mode_button,
                         onButtonClicked = onEditModeButtonClicked
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                if (appMode == AppMode.THERAPIST_MODE) {
+                    MenuButton(
+                        image = R.drawable.group_48px,
+                        text = R.string.pupils_label,
+                        onButtonClicked = onStudentsButtonClicked
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -321,10 +338,11 @@ fun NavigationActivityPreview(){
         onGalleryButtonClicked = { },
         onEditModeButtonClicked = {},
         onSettingsButtonClicked = {},
-        appMode = AppMode.PARENTAL_MODE,
+        appMode = AppMode.THERAPIST_MODE,
         shouldShowAskForPasswordDialog = false,
         changeDialogState = {},
         passwordValue = "123456",
-        onPasswordValueChange = {}
+        onPasswordValueChange = {},
+        onStudentsButtonClicked = {}
     )
 }

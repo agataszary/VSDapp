@@ -212,15 +212,17 @@ fun SettingsContent(
                     .align(Alignment.Center)
                     .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    text = stringResource(R.string.app_mode)
-                )
-                SegmentedButtons(
-                    firstButtonContent = stringResource(R.string.parental_mode),
-                    secondButtonContent = stringResource(R.string.child_mode),
-                    onButtonClicked = onAppModeButtonClicked,
-                    selectedButton = selectedAppMode.toInt()
-                )
+                if (selectedAppMode != AppMode.THERAPIST_MODE) {
+                    Text(
+                        text = stringResource(R.string.app_mode)
+                    )
+                    SegmentedButtons(
+                        firstButtonContent = stringResource(R.string.parental_mode),
+                        secondButtonContent = stringResource(R.string.child_mode),
+                        onButtonClicked = onAppModeButtonClicked,
+                        selectedButton = selectedAppMode.toInt()
+                    )
+                }
 
                 Card(
                     shape = RoundedCornerShape(10.dp),
@@ -539,7 +541,7 @@ private fun SettingsContentPreview() {
         onEditPasswordButtonClicked = {},
         isEditing = false,
         onCancelButtonClicked = {},
-        showChangePasswordDialog = true,
+        showChangePasswordDialog = false,
         changeDialogState = {},
         oldPasswordValue = "123456",
         newPasswordValue = "1234",

@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.core.net.toUri
 import com.example.vsdapp.core.BaseRepository
 import com.example.vsdapp.models.SceneDetails
+import com.example.vsdapp.models.UserModel
 import com.google.android.gms.tasks.Task
 import com.google.firebase.storage.FileDownloadTask
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +30,18 @@ class StorageRepository: BaseRepository() {
     fun deleteScene(sceneId: String, imageLocation: String) {
         scenesImagesRef.child("${user!!.uid}/$imageLocation").delete()
         firestoreDb.collection("scenes").document(sceneId).delete()
+    }
+
+    fun updateSceneBookmarkedField(sceneId: String, value: Boolean): Task<Void> {
+        return firestoreDb.collection("scenes").document(sceneId).update("markedByTherapist", value)
+    }
+
+    suspend fun getScenesForUserId(userId: String): List<SceneDetails> {
+        return firestoreDb.collection("scenes").whereEqualTo("userId", userId).get().await().toObjects(SceneDetails::class.java)
+    }
+
+    suspend fun getUserDataForId(userId: String): UserModel? {
+        return firestoreDb.collection("users").document(userId).get().await().toObject(UserModel::class.java)
     }
 
 }

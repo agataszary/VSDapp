@@ -109,7 +109,9 @@ class RegisterActivity : AppCompatActivity() {
 
     @Composable
     fun RegisterScreen() {
-        Crossfade(targetState = viewModel.viewStateFlow.collectAsState().value) {viewState ->
+        Crossfade(targetState = viewModel.viewStateFlow.collectAsState().value,
+            label = ""
+        ) { viewState ->
             when (viewState) {
                 is ViewState.Progress -> LoadingScreen()
                 is ViewState.Content -> {

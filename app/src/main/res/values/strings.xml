@@ -44,4 +44,10 @@
     <string name="new_password">Nowe hasło</string>
     <string name="write_password">Podaj hasło</string>
     <string name="confirm_label">Potwierdź</string>
+    <string name="pupils_label">Podopieczni</string>
+    <string name="your_pupils_screen_title">Przeglądaj swoich podopiecznych</string>
+    <string name="search_for_students">Wyszukaj podopiecznych do dodania</string>
+    <string name="see_users_gallery">Wyświetl galerię użytkownika</string>
+    <string name="delete_user">Usuń użytkownika ze swojej listy</string>
+    <string name="user_gallery">Galeria użytkownika %1$s %2$s</string>
 </resources>
