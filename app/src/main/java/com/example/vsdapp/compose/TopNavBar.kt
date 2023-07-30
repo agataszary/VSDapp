@@ -112,7 +112,7 @@ fun TopNavBar(
 }
 
 @Composable
-private fun OverflowMenu(modifier: Modifier, content: @Composable () -> Unit) {
+fun OverflowMenu(modifier: Modifier, content: @Composable () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
 
     Box(

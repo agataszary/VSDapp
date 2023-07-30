@@ -226,7 +226,9 @@ class EditModeViewModel(
                     title = titleInput.value,
                     imageLocation = imageLocation,
                     pictograms = iconsOnPicture.values.toList(),
-                    imageUrl = imageUrl.toString()
+                    imageUrl = imageUrl.toString(),
+                    favourite = false,
+                    markedByTherapist = false
                 )
 
                 val (task, docId) = withContext(Dispatchers.IO) { editRepository.saveSceneDetails(sceneDetails) }
@@ -244,7 +246,9 @@ class EditModeViewModel(
                     pictograms = iconsOnPicture.values.toList(),
                     userId = scene.userId,
                     imageUrl = scene.imageUrl,
-                    id = sceneToUpdateId
+                    id = sceneToUpdateId,
+                    favourite = scene.favourite,
+                    markedByTherapist = scene.markedByTherapist
                 )
 
                 withContext(Dispatchers.IO) { editRepository.updateSceneDetails(sceneToUpdateId, sceneToUpdate) }

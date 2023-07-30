@@ -342,7 +342,7 @@ private fun LoginContentPreview() {
         },
         isButtonEnabled = true,
         onDontRememberButtonClicked = {},
-        openResetPasswordDialog = true,
+        openResetPasswordDialog = false,
         onResetEmailValueChange = {},
         resetEmailValue = "aaa@mail.com",
         changeAlertDialogState = {}

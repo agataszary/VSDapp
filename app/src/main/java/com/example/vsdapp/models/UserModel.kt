@@ -1,5 +1,9 @@
 package com.example.vsdapp.models
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class UserModel(
     var userId: String = "",
     var mainName: String = "",
@@ -8,5 +12,6 @@ data class UserModel(
     var childSurname: String? = null,
     var emailAddress: String = "",
     var therapistAccount: Boolean = false,
-    var password: String = ""
-)
+    var password: String = "",
+    var savedStudents: List<String>? = null
+): Parcelable

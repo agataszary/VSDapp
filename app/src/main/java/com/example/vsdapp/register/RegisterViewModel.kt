@@ -2,14 +2,21 @@ package com.example.vsdapp.register
 
 import android.util.Patterns
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.viewModelScope
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.CloseWithOkResult
 import com.example.vsdapp.core.ComposeViewModel
+import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.core.ShowToast
 import com.example.vsdapp.models.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 
 class RegisterViewModel(private val repository: RegisterRepository) : ComposeViewModel() {
@@ -83,10 +90,13 @@ class RegisterViewModel(private val repository: RegisterRepository) : ComposeVie
                                 childSurname = childSurnameValue.value,
                                 emailAddress = emailAddressValue.value,
                                 therapistAccount = therapistAccountIsChecked.value,
-                                password = passwordValue.value
+                                password = passwordValue.value,
+                                savedStudents = if (therapistAccountIsChecked.value) listOf() else null
                             )
                             repository.addNewUser(newUser)
-                                .addOnSuccessListener { sendEvent(CloseWithOkResult) }
+                                .addOnSuccessListener {
+                                    if (newUser.therapistAccount) setTherapistMode() else sendEvent(CloseWithOkResult)
+                                }
                                 .addOnFailureListener {
                                     showContent()
                                     sendEvent(ShowToast("Rejestracja nie powiodła się, spróbuj ponownie"))
@@ -97,6 +107,14 @@ class RegisterViewModel(private val repository: RegisterRepository) : ComposeVie
                         sendEvent(ShowToast("Rejestracja nie powiodła się, spróbuj ponownie"))
                     }
                 }
+        }
+    }
+
+    private fun setTherapistMode() {
+        viewModelScope.launch(Dispatchers.Main) {
+            println("Therapist modeeeeeeeee")
+            async {dataStore.updatePreference(PreferencesDataStore.APP_MODE_KEY, AppMode.THERAPIST_MODE)}.await()
+            sendEvent(CloseWithOkResult)
         }
     }
 

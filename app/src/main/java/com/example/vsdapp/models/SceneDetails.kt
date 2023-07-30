@@ -9,6 +9,6 @@ data class SceneDetails(
     val imageUrl: String = "",
     val pictograms: List<PictogramDetails> = listOf(),
     val userId: String = "",
-    val isFavourite: Boolean = false,
-    val isMarkedByTherapist: Boolean = false
+    val favourite: Boolean = false,
+    val markedByTherapist: Boolean = false
 )

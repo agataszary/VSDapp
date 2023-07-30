@@ -2,15 +2,23 @@ package com.example.vsdapp.login
 
 import android.util.Patterns
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.viewModelScope
+import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.core.OpenNavigationActivity
 import com.example.vsdapp.core.OpenRegisterActivity
+import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.core.ShowToast
+import com.example.vsdapp.database.StorageRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class LoginViewModel : ComposeViewModel() {
+class LoginViewModel(private val storageRepository: StorageRepository) : ComposeViewModel() {
 
     var emailAddressValue = mutableStateOf("")
         private set
@@ -43,12 +51,24 @@ class LoginViewModel : ComposeViewModel() {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     println(user?.email)
-                    sendEvent(OpenNavigationActivity)
+                    checkForTherapistMode(user!!.uid)
                 } else {
                     sendEvent(ShowToast("Niepoprawny e-mail lub hasło"))
                     isEmailError.value = true
                 }
             }
+    }
+
+    private fun checkForTherapistMode(userId: String) {
+        viewModelScope.launch(Dispatchers.Main){
+            val userModel = withContext(Dispatchers.IO) { storageRepository.getUserDataForId(userId) }
+            if (userModel != null && userModel.therapistAccount) {
+                async { dataStore.updatePreference(PreferencesDataStore.APP_MODE_KEY, AppMode.THERAPIST_MODE) }.await()
+            } else {
+                async { dataStore.updatePreference(PreferencesDataStore.APP_MODE_KEY, AppMode.CHILD_MODE) }. await()
+            }
+            sendEvent(OpenNavigationActivity)
+        }
     }
 
     fun onCreateAccountClicked() {

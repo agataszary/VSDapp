@@ -14,8 +14,6 @@ import kotlinx.coroutines.withContext
 
 class GalleryViewModel(private val storageRepository: StorageRepository): ComposeViewModel() {
 
-    private lateinit var sceneDao: SceneDao
-
     val searchInput = mutableStateOf("")
 
     var scenesList = mutableStateOf<List<SceneDetails>>(listOf())
@@ -32,11 +30,6 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
     val shouldShowNoResultsDisclaimer = mutableStateOf(false)
 
     private var sceneToDelete: SceneDetails? = null
-
-    fun setInitialData(sceneDao: SceneDao) {
-        this.sceneDao = sceneDao
-        loadData()
-    }
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
