@@ -217,8 +217,7 @@ fun SettingsContent(
                         text = stringResource(R.string.app_mode)
                     )
                     SegmentedButtons(
-                        firstButtonContent = stringResource(R.string.parental_mode),
-                        secondButtonContent = stringResource(R.string.child_mode),
+                        buttonsTitles = listOf(stringResource(R.string.parental_mode), stringResource(R.string.child_mode)),
                         onButtonClicked = onAppModeButtonClicked,
                         selectedButton = selectedAppMode.toInt()
                     )

@@ -42,12 +42,15 @@ class ReadModeViewModel(private val storageRepository: StorageRepository): DataB
         private set
     var appMode = mutableStateOf(AppMode.NONE)
 
+    var isFromStudentsGallery = mutableStateOf(false)
+        private set
+
     private lateinit var scene: SceneDetails
     private var sceneId = ""
     private lateinit var sceneDao: SceneDao
     private lateinit var tts: TextToSpeech
 
-    fun loadInitialData(sceneId: String, db: SceneDao, view: View, context: Context, textToSpeech: TextToSpeech, imageLocation: String){
+    fun loadInitialData(sceneId: String, db: SceneDao, view: View, context: Context, textToSpeech: TextToSpeech, imageLocation: String, userId: String?){
         showProgress()
 
         this.sceneDao = db
@@ -55,10 +58,15 @@ class ReadModeViewModel(private val storageRepository: StorageRepository): DataB
         this.sceneId = sceneId
         
         viewModelScope.launch(Dispatchers.Main) {
-            scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
+            isFromStudentsGallery.value = userId != null
             appMode.value = withContext(Dispatchers.IO){ dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY) }
+            scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
 
-            val (imageTask, imageUri) = withContext(Dispatchers.IO) { storageRepository.getImage(imageLocation) }
+            val (imageTask, imageUri) = if (appMode.value == AppMode.THERAPIST_MODE && userId != null) {
+                withContext(Dispatchers.IO) { storageRepository.getImageForUserId(imageLocation, userId) }
+            } else {
+                withContext(Dispatchers.IO) { storageRepository.getImage(imageLocation) }
+            }
             imageTask
                 .addOnSuccessListener {
                     selectedPictureMutableData.value = imageUri

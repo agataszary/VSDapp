@@ -22,6 +22,8 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,9 +47,11 @@ import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.core.net.toUri
 import com.example.vsdapp.compose.NoResultsDisclaimer
+import com.example.vsdapp.compose.SegmentedButtons
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.models.SceneDetails
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -127,7 +131,10 @@ class GalleryActivity: AppCompatActivity(){
             openAlertDialog = viewModel.openAlertDialog.value,
             onConfirmDeleteClicked = { viewModel.onConfirmDeleteClicked() },
             appMode = viewModel.appMode.value,
-            shouldShowNoResultsDisclaimer = viewModel.shouldShowNoResultsDisclaimer.value
+            shouldShowNoResultsDisclaimer = viewModel.shouldShowNoResultsDisclaimer.value,
+            onFavouriteClicked = { viewModel.onFavouriteClicked(it) },
+            onTabClicked = { viewModel.onTabClicked(it) },
+            selectedTabIndex = viewModel.tabIndex.value
         )
     }
 }
@@ -148,7 +155,10 @@ fun GalleryContent(
     changeAlertDialogState: (Boolean) -> Unit,
     onConfirmDeleteClicked: () -> Unit,
     appMode: AppMode,
-    shouldShowNoResultsDisclaimer: Boolean
+    shouldShowNoResultsDisclaimer: Boolean,
+    onFavouriteClicked: (SceneDetails) -> Unit,
+    onTabClicked: (Int) -> Unit,
+    selectedTabIndex: Int
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -243,6 +253,18 @@ fun GalleryContent(
                     )
                 }
             }
+
+            SegmentedButtons(
+                buttonsTitles = listOf(
+                    stringResource(R.string.all_label),
+                    stringResource(R.string.favourite_label),
+                    stringResource(R.string.marked_label)
+                ),
+                onButtonClicked = onTabClicked,
+                selectedButton = selectedTabIndex
+            )
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_large)))
+
             if (shouldShowNoResultsDisclaimer) {
                 Box(
                     modifier = Modifier
@@ -306,6 +328,18 @@ fun GalleryContent(
                                         .padding(start = 16.dp)
                                         .weight(1f)
                                 )
+                                IconButton(
+                                    onClick = { onFavouriteClicked(scene) },
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .padding(end = 16.dp)
+                                ) {
+                                    Image(
+                                        imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                        contentDescription = "Delete icon",
+                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                    )
+                                }
                                 if (appMode != AppMode.CHILD_MODE) {
                                     IconButton(
                                         onClick = { onDeleteSceneClicked(scene) },
@@ -350,6 +384,9 @@ fun GalleryContentPreview() {
         openAlertDialog = false,
         onConfirmDeleteClicked = {},
         appMode = AppMode.PARENTAL_MODE,
-        shouldShowNoResultsDisclaimer = false
+        shouldShowNoResultsDisclaimer = false,
+        onFavouriteClicked = {},
+        onTabClicked = {},
+        selectedTabIndex = 0
     )
 }

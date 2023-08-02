@@ -32,10 +32,11 @@ import java.util.*
 class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
     companion object {
-        fun start(activity: Activity, sceneId: String, imageLocation: String) {
+        fun start(activity: Activity, sceneId: String, imageLocation: String, userId: String? = null) {
             val intent = Intent(activity, ReadModeActivity::class.java)
                 .putExtra(Constants.INTENT_SCENE, sceneId)
                 .putExtra(Constants.IMAGE_LOCATION, imageLocation)
+                .putExtra(Constants.INTENT_USER_ID, userId)
             activity.startActivity(intent)
         }
     }
@@ -64,6 +65,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
 
         scene = intent.getStringExtra(Constants.INTENT_SCENE)!!
         imageLocation = intent.getStringExtra(Constants.IMAGE_LOCATION)!!
+        val userId = intent.getStringExtra(Constants.INTENT_USER_ID)
         val db = AppDatabase.getInstance(this)
 
         viewModel.loadInitialData(
@@ -72,7 +74,8 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
             view = binding.relativeLayoutAtReadMode,
             context = this,
             textToSpeech = tts,
-            imageLocation = imageLocation
+            imageLocation = imageLocation,
+            userId = userId
         )
 
         binding.readModeTopNavBar.setContent {
@@ -102,7 +105,7 @@ class ReadModeActivity: AppCompatActivity(), TextToSpeech.OnInitListener {
                 )
             )
         }
-        if (viewModel.appMode.value == AppMode.PARENTAL_MODE) {
+        if (viewModel.appMode.value != AppMode.CHILD_MODE && !viewModel.isFromStudentsGallery.value) {
             DropdownMenuItem(onClick = { openEditModeScreen(scene, imageLocation) } ) {
                 Text(stringResource(R.string.edit))
             }
