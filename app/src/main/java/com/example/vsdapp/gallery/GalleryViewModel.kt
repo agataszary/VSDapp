@@ -19,7 +19,7 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
     var scenesList = mutableStateOf<List<SceneDetails>>(listOf())
         private set
 
-    private var userScenes: List<SceneDetails> = listOf()
+    private var userScenes: MutableMap<String, SceneDetails> = mutableMapOf()
 
     var openAlertDialog = mutableStateOf(false)
         private set
@@ -27,23 +27,34 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
     var appMode = mutableStateOf(AppMode.NONE)
         private set
 
+    var tabIndex = mutableStateOf(0)
+        private set
+
     val shouldShowNoResultsDisclaimer = mutableStateOf(false)
 
     private var sceneToDelete: SceneDetails? = null
+    private var availableScenes: MutableMap<String, SceneDetails> = mutableMapOf()
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
             showProgress()
-            scenesList.value = withContext(Dispatchers.IO) { storageRepository.getAllScenesDetails() }
-            userScenes = scenesList.value
+            val tmpMap = mutableMapOf<String, SceneDetails>()
+            withContext(Dispatchers.IO) { storageRepository.getAllScenesDetails() }
+                .forEach {
+                    tmpMap[it.id] = it
+                }
             appMode.value = withContext(Dispatchers.IO) {dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY)}
+            availableScenes = tmpMap
+            userScenes = tmpMap
+            scenesList.value = tmpMap.values.toList()
         }.invokeOnCompletion { showContent() }
     }
 
     fun onSearchButtonClicked() {
         viewModelScope.launch(Dispatchers.Main) {
-            val sceneList = userScenes.filter { it.title.contains(searchInput.value) }
-            scenesList.value = sceneList
+            val sceneList = userScenes.filter { it.value.title.contains(searchInput.value) }
+            availableScenes = sceneList.toMutableMap()
+            scenesList.value = sceneList.values.toList()
             shouldShowNoResultsDisclaimer.value = sceneList.isEmpty()
         }
     }
@@ -52,7 +63,8 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
         if (newSearch.isNotBlank() || (newSearch.isBlank() && searchInput.value != "")){
             searchInput.value = newSearch
             if (searchInput.value == "") {
-                scenesList.value = userScenes
+                availableScenes = userScenes
+                scenesList.value = userScenes.values.toList()
                 shouldShowNoResultsDisclaimer.value = false
             }
         }
@@ -67,8 +79,9 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
         viewModelScope.launch(Dispatchers.Main) {
             withContext(Dispatchers.IO){
                 storageRepository.deleteScene(scene.id, scene.imageLocation)
-                userScenes = userScenes.filter { it.id != scene.id}
-                scenesList.value = userScenes
+                userScenes = userScenes.filter { it.key != scene.id}.toMutableMap()
+                availableScenes = availableScenes.filter { it.key != scene.id }.toMutableMap()
+                scenesList.value = availableScenes.values.toList()
             }
         }
     }
@@ -82,5 +95,25 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
 
     fun changeAlertDialogState(state: Boolean){
         openAlertDialog.value = state
+    }
+
+    fun onFavouriteClicked(scene: SceneDetails) {
+        val isFavourite = scene.favourite
+        storageRepository.updateSceneFavouriteField(scene.id, !isFavourite)
+            .addOnSuccessListener {
+                userScenes[scene.id] = scene.copy(favourite = !isFavourite)
+                availableScenes[scene.id] = scene.copy(favourite = !isFavourite)
+                scenesList.value = availableScenes.values.toList()
+            }
+    }
+
+    fun onTabClicked(index: Int) {
+        tabIndex.value = index
+
+        when(index) {
+            0 -> scenesList.value = availableScenes.values.toList()
+            1 -> scenesList.value = availableScenes.filterValues { it.favourite }.values.toList()
+            2 -> scenesList.value = availableScenes.filterValues { it.markedByTherapist }.values.toList()
+        }
     }
 }

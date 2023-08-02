@@ -30,6 +30,9 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
     var userSurname = mutableStateOf("")
         private set
 
+    var tabIndex = mutableStateOf(0)
+        private set
+
     fun setInitialData(userModel: UserModel) {
         this.userModel = userModel
         userName.value = if (userModel.childName.isNullOrEmpty()) userModel.mainName else userModel.childName!!
@@ -79,5 +82,14 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
                 availableScenes[sceneDetails.id] = sceneDetails.copy(markedByTherapist = !isMarkedState)
                 scenesList.value = availableScenes.values.toList()
             }
+    }
+
+    fun onTabClicked(tabIndex: Int) {
+        this.tabIndex.value = tabIndex
+        when (tabIndex) {
+            0 -> scenesList.value = availableScenes.values.toList()
+            1 -> scenesList.value = availableScenes.filterValues { it.markedByTherapist }.values.toList()
+        }
+
     }
 }

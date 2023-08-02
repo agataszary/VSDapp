@@ -14,10 +14,18 @@ import java.io.File
 
 class StorageRepository: BaseRepository() {
 
+    // STORAGE
      fun getImage(imageLocation: String): Pair<FileDownloadTask, Uri> {
         val tmpFile = File.createTempFile("tmpImageFile", "jpg")
         return Pair(scenesImagesRef.child("${user!!.uid}/$imageLocation").getFile(tmpFile), tmpFile.toUri())
     }
+
+    fun getImageForUserId(imageLocation: String, userId: String): Pair<FileDownloadTask, Uri> {
+        val tmpFile = File.createTempFile("tmpImageFile", "jpg")
+        return Pair(scenesImagesRef.child("$userId/$imageLocation").getFile(tmpFile), tmpFile.toUri())
+    }
+
+    // FIRESTORE SCENES
 
     suspend fun getSceneDetails(sceneId: String): SceneDetails? {
         return firestoreDb.collection("scenes").document(sceneId).get().await().toObject(SceneDetails::class.java)
@@ -36,9 +44,15 @@ class StorageRepository: BaseRepository() {
         return firestoreDb.collection("scenes").document(sceneId).update("markedByTherapist", value)
     }
 
+    fun updateSceneFavouriteField(sceneId: String, value: Boolean): Task<Void> {
+        return firestoreDb.collection("scenes").document(sceneId).update("favourite", value)
+    }
+
     suspend fun getScenesForUserId(userId: String): List<SceneDetails> {
         return firestoreDb.collection("scenes").whereEqualTo("userId", userId).get().await().toObjects(SceneDetails::class.java)
     }
+
+    //FIRESTORE USERS
 
     suspend fun getUserDataForId(userId: String): UserModel? {
         return firestoreDb.collection("users").document(userId).get().await().toObject(UserModel::class.java)

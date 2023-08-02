@@ -50,4 +50,7 @@
     <string name="see_users_gallery">Wyświetl galerię użytkownika</string>
     <string name="delete_user">Usuń użytkownika ze swojej listy</string>
     <string name="user_gallery">Galeria użytkownika %1$s %2$s</string>
+    <string name="all_label">Wszystkie</string>
+    <string name="marked_label">Oznaczone</string>
+    <string name="favourite_label">Ulubione</string>
 </resources>
