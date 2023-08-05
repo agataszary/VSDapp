@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.net.toUri
 import androidx.core.view.iterator
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -62,11 +63,7 @@ class ReadModeViewModel(private val storageRepository: StorageRepository): DataB
             appMode.value = withContext(Dispatchers.IO){ dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY) }
             scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
 
-            val (imageTask, imageUri) = if (appMode.value == AppMode.THERAPIST_MODE && userId != null) {
-                withContext(Dispatchers.IO) { storageRepository.getImageForUserId(imageLocation, userId) }
-            } else {
-                withContext(Dispatchers.IO) { storageRepository.getImage(imageLocation) }
-            }
+            val (imageTask, imageUri) = withContext(Dispatchers.IO) { storageRepository.getImage(scene.imageLocation) }
             imageTask
                 .addOnSuccessListener {
                     selectedPictureMutableData.value = imageUri

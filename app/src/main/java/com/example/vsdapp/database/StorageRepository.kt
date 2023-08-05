@@ -17,7 +17,7 @@ class StorageRepository: BaseRepository() {
     // STORAGE
      fun getImage(imageLocation: String): Pair<FileDownloadTask, Uri> {
         val tmpFile = File.createTempFile("tmpImageFile", "jpg")
-        return Pair(scenesImagesRef.child("${user!!.uid}/$imageLocation").getFile(tmpFile), tmpFile.toUri())
+        return Pair(scenesImagesRef.child(imageLocation).getFile(tmpFile), tmpFile.toUri())
     }
 
     fun getImageForUserId(imageLocation: String, userId: String): Pair<FileDownloadTask, Uri> {

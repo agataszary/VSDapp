@@ -10,4 +10,5 @@ import com.google.android.gms.tasks.Task
 sealed class QueryStatus()
 
 class Success(val task: Task<Void>): QueryStatus()
+object SuccessEmpty : QueryStatus()
 class Failure(val message: String? = null): QueryStatus()
