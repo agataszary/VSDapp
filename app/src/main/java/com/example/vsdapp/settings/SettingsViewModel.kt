@@ -139,6 +139,7 @@ class SettingsViewModel(private val repository: SettingsRepository): ComposeView
                 is Failure -> {
                     sendEvent(ShowToast(queryResponse.message ?: "Zmiana hasła nie powiodła się, spróbuj jeszcze raz"))
                 }
+                else -> {}
             }
             showChangePasswordDialog.value = false
         }

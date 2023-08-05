@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -48,12 +50,16 @@ import com.example.vsdapp.views.PictogramDetails
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import com.example.vsdapp.compose.NoResultsDisclaimer
+import com.example.vsdapp.compose.OverflowMenu
 import com.example.vsdapp.compose.SegmentedButtons
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.models.SceneDetails
+import com.example.vsdapp.models.UserModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GalleryActivity: AppCompatActivity(){
@@ -134,7 +140,13 @@ class GalleryActivity: AppCompatActivity(){
             shouldShowNoResultsDisclaimer = viewModel.shouldShowNoResultsDisclaimer.value,
             onFavouriteClicked = { viewModel.onFavouriteClicked(it) },
             onTabClicked = { viewModel.onTabClicked(it) },
-            selectedTabIndex = viewModel.tabIndex.value
+            selectedTabIndex = viewModel.tabIndex.value,
+            onBookmarkClicked = { viewModel.onBookmarkClicked(it) },
+            onShareClicked = { viewModel.onShareClicked(it) },
+            openUserShareList = viewModel.openUserShareDialog.value,
+            usersShareList = viewModel.usersShareList.value,
+            onUserCheckboxClicked = { viewModel.onUserCheckboxClicked(it) },
+            changeUserShareDialogState = { viewModel.changeUserShareDialogState(it) }
         )
     }
 }
@@ -158,7 +170,13 @@ fun GalleryContent(
     shouldShowNoResultsDisclaimer: Boolean,
     onFavouriteClicked: (SceneDetails) -> Unit,
     onTabClicked: (Int) -> Unit,
-    selectedTabIndex: Int
+    selectedTabIndex: Int,
+    onBookmarkClicked: (SceneDetails) -> Unit,
+    onShareClicked: (SceneDetails) -> Unit,
+    openUserShareList: Boolean,
+    usersShareList: List<UserCheckBoxListModel>,
+    onUserCheckboxClicked: ((String) -> Unit),
+    changeUserShareDialogState: ((Boolean) -> Unit)
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -178,39 +196,17 @@ fun GalleryContent(
                 .fillMaxWidth()
         ) {
             if (openAlertDialog) {
-                AlertDialog(
-                    onDismissRequest = { changeAlertDialogState(false) },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.delete_scene_alert_title),
-                            fontSize = 20.sp
-                        )
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(R.string.delete_scene_alert_body)
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = { onConfirmDeleteClicked() }
-                        ) {
-                            Text(
-                                text = stringResource(R.string.delete_scene_alert_confirm)
-                            )
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = { changeAlertDialogState(false) }
-                        ) {
-                            Text(
-                                text = stringResource(R.string.delete_scene_alert_cancel)
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .width(300.dp)
+                DeleteAlertDialog(
+                    changeAlertDialogState = changeAlertDialogState,
+                    onConfirmDeleteClicked = onConfirmDeleteClicked
+                )
+            }
+
+            if (appMode == AppMode.THERAPIST_MODE && openUserShareList) {
+                UsersShareList(
+                    usersList = usersShareList,
+                    onUserCheckboxClicked = onUserCheckboxClicked,
+                    changeDialogState = changeUserShareDialogState
                 )
             }
 
@@ -328,34 +324,230 @@ fun GalleryContent(
                                         .padding(start = 16.dp)
                                         .weight(1f)
                                 )
-                                IconButton(
-                                    onClick = { onFavouriteClicked(scene) },
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .padding(end = 16.dp)
-                                ) {
-                                    Image(
-                                        imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                        contentDescription = "Delete icon",
-                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                    )
-                                }
-                                if (appMode != AppMode.CHILD_MODE) {
+                                if (appMode == AppMode.THERAPIST_MODE) {
+                                    OverflowMenu(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .padding(end = 16.dp)
+                                    ) {
+                                        DropdownMenuItem(onClick = { onFavouriteClicked(scene) }) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ){
+                                                Text(text = stringResource(R.string.favourite_label))
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                IconButton(
+                                                    onClick = { onFavouriteClicked(scene) },
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                ) {
+                                                    Image(
+                                                        imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                                        contentDescription = "Delete icon",
+                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        DropdownMenuItem(onClick = { onBookmarkClicked(scene) }) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ){
+                                                Text(text = stringResource(R.string.marked_label))
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                IconButton(
+                                                    onClick = { onBookmarkClicked(scene) },
+                                                    modifier = Modifier
+                                                        .padding(end = 8.dp)
+                                                        .size(32.dp)
+                                                ) {
+                                                    Icon(
+                                                        painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(R.drawable.bookmark_48px),
+                                                        contentDescription = "Delete icon",
+                                                        tint = colorResource(id = R.color.red_x),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        DropdownMenuItem(onClick = { onDeleteSceneClicked(scene) }) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ){
+                                                Text(text = stringResource(R.string.delete_scene))
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                IconButton(
+                                                    onClick = { onDeleteSceneClicked(scene) },
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                ) {
+                                                    Image(
+                                                        imageVector = Icons.Filled.Delete,
+                                                        contentDescription = "Delete icon",
+                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        DropdownMenuItem(onClick = { onShareClicked(scene) }) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ){
+                                                Text(text = stringResource(R.string.share_to_students_label))
+                                                Spacer(modifier = Modifier.weight(1f))
+                                                IconButton(
+                                                    onClick = { onShareClicked(scene) },
+                                                    modifier = Modifier
+                                                        .size(48.dp)
+                                                ) {
+                                                    Image(
+                                                        imageVector = Icons.Filled.Share,
+                                                        contentDescription = "Delete icon",
+                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
                                     IconButton(
-                                        onClick = { onDeleteSceneClicked(scene) },
+                                        onClick = { onFavouriteClicked(scene) },
                                         modifier = Modifier
                                             .size(48.dp)
                                             .padding(end = 16.dp)
                                     ) {
                                         Image(
-                                            imageVector = Icons.Filled.Delete,
+                                            imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                             contentDescription = "Delete icon",
                                             colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
                                         )
                                     }
+                                    if (appMode != AppMode.CHILD_MODE) {
+                                        IconButton(
+                                            onClick = { onDeleteSceneClicked(scene) },
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .padding(end = 16.dp)
+                                        ) {
+                                            Image(
+                                                imageVector = Icons.Filled.Delete,
+                                                contentDescription = "Delete icon",
+                                                colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteAlertDialog(
+    changeAlertDialogState: (Boolean) -> Unit,
+    onConfirmDeleteClicked: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { changeAlertDialogState(false) },
+        title = {
+            Text(
+                text = stringResource(R.string.delete_scene_alert_title),
+                fontSize = 20.sp
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(R.string.delete_scene_alert_body)
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirmDeleteClicked() }
+            ) {
+                Text(
+                    text = stringResource(R.string.delete_scene_alert_confirm)
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = { changeAlertDialogState(false) }
+            ) {
+                Text(
+                    text = stringResource(R.string.delete_scene_alert_cancel)
+                )
+            }
+        },
+        modifier = Modifier
+            .width(300.dp)
+    )
+}
+
+@Composable
+private fun UsersShareList(
+    usersList: List<UserCheckBoxListModel>,
+    onUserCheckboxClicked: (String) -> Unit,
+    changeDialogState: (Boolean) -> Unit
+) {
+    Dialog(
+        onDismissRequest = { changeDialogState(false) }
+    ) {
+        Card(
+            shape = RoundedCornerShape(10.dp),
+            backgroundColor = Color.White,
+            modifier = Modifier
+                .width(400.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier
+                    .padding(dimensionResource(R.dimen.margin_large))
+            ) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.choose_users),
+                        fontSize = 20.sp,
+                        modifier = Modifier
+                            .padding(bottom = dimensionResource(R.dimen.margin_small))
+                    )
+                    LazyColumn{
+                        items(
+                            items = usersList,
+                            key = { it.userId }
+                        ){user ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                Text(
+                                    text = "${user.name} ${user.surname}"
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                Checkbox(
+                                    checked = user.isChecked,
+                                    onCheckedChange = { onUserCheckboxClicked(user.userId) },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = colorResource(R.color.medium_purple)
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+                Row {
+                    TextButton(
+                        onClick = { changeDialogState(false) }
+                    ) {
+                        Text(text = stringResource(R.string.delete_scene_alert_cancel))
+                    }
+                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.margin_small)))
+                    TextButton(
+                        onClick = { changeDialogState(true) }
+                    ) {
+                        Text(text = stringResource(R.string.share_label))
                     }
                 }
             }
@@ -387,6 +579,25 @@ fun GalleryContentPreview() {
         shouldShowNoResultsDisclaimer = false,
         onFavouriteClicked = {},
         onTabClicked = {},
-        selectedTabIndex = 0
+        selectedTabIndex = 0,
+        onBookmarkClicked = {},
+        onShareClicked = {},
+        openUserShareList = false,
+        usersShareList = listOf(),
+        onUserCheckboxClicked = {},
+        changeUserShareDialogState = {}
+    )
+}
+
+@Preview
+@Composable
+private fun UsersDialogPreview() {
+    UsersShareList(
+        usersList = listOf(
+            UserCheckBoxListModel(name = "Aneta", surname = "Klej", userId = "1", isChecked = false),
+            UserCheckBoxListModel(name = "Aneta", surname = "Klej", userId = "2", isChecked = true)
+        ),
+        onUserCheckboxClicked = {},
+        changeDialogState = {}
     )
 }

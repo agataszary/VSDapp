@@ -35,7 +35,8 @@ class EditModeRepository: BaseRepository() {
         val docRef = firestoreDb.collection("scenes").document()
         val sceneToSave = scene.copy(
             userId = user!!.uid,
-            id = docRef.id
+            id = docRef.id,
+            imageLocation = "${user.uid}/${scene.imageLocation}"
         )
         return Pair(docRef.set(sceneToSave), docRef.id)
     }

@@ -17,7 +17,7 @@ object ViewModelModule {
     val get: Module
         get() = module {
             viewModel { EditModeViewModel(get(), get()) }
-            viewModel { GalleryViewModel(get()) }
+            viewModel { GalleryViewModel(get(), get()) }
             viewModel { ReadModeViewModel(get()) }
             viewModel { SettingsViewModel(get()) }
             viewModel { NavigationViewModel(get()) }

@@ -53,4 +53,12 @@
     <string name="all_label">Wszystkie</string>
     <string name="marked_label">Oznaczone</string>
     <string name="favourite_label">Ulubione</string>
+    <string name="add_to_favourite_label">Dodaj do ulubionych</string>
+    <string name="remove_from_favourite_label">Usuń z ulubionych</string>
+    <string name="share_to_students_label">Udostępnij podopiecznym</string>
+    <string name="bookmark_scene_label">Dodaj do oznaczonych</string>
+    <string name="remove_from_marked_label">Usuń z oznaczonych</string>
+    <string name="delete_scene">Usuń</string>
+    <string name="choose_users">Wybierz użytkowników</string>
+    <string name="share_label">Udostępnij</string>
 </resources>

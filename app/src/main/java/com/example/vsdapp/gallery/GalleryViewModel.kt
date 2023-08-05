@@ -8,11 +8,16 @@ import com.example.vsdapp.core.PreferencesDataStore
 import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.database.StorageRepository
 import com.example.vsdapp.models.SceneDetails
+import com.example.vsdapp.models.UserModel
+import com.example.vsdapp.students.StudentsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class GalleryViewModel(private val storageRepository: StorageRepository): ComposeViewModel() {
+class GalleryViewModel(
+    private val storageRepository: StorageRepository,
+    private val studentsRepository: StudentsRepository
+): ComposeViewModel() {
 
     val searchInput = mutableStateOf("")
 
@@ -24,6 +29,9 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
     var openAlertDialog = mutableStateOf(false)
         private set
 
+    var openUserShareDialog = mutableStateOf(false)
+        private set
+
     var appMode = mutableStateOf(AppMode.NONE)
         private set
 
@@ -32,8 +40,15 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
 
     val shouldShowNoResultsDisclaimer = mutableStateOf(false)
 
+    var usersShareList = mutableStateOf(listOf<UserCheckBoxListModel>())
+        private set
+
+    private var usersShareMap: MutableMap<String, UserCheckBoxListModel> = mutableMapOf()
+
     private var sceneToDelete: SceneDetails? = null
+    private var sceneToShare: SceneDetails? = null
     private var availableScenes: MutableMap<String, SceneDetails> = mutableMapOf()
+    private var savedUsersList: List<UserModel> = listOf()
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -47,7 +62,26 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
             availableScenes = tmpMap
             userScenes = tmpMap
             scenesList.value = tmpMap.values.toList()
+
+            if (appMode.value == AppMode.THERAPIST_MODE) {
+                savedUsersList = withContext(Dispatchers.IO) { studentsRepository.getSavedUsers() }
+                createUsersShareList()
+            }
         }.invokeOnCompletion { showContent() }
+    }
+
+    private fun createUsersShareList() {
+        for (user in savedUsersList) {
+            val name = if (user.childName.isNullOrEmpty()) user.mainName else user.childName!!
+            val surname = if (user.childSurname.isNullOrEmpty()) user.mainSurname else user.childSurname!!
+            usersShareMap[user.userId] = UserCheckBoxListModel(
+                name = name,
+                surname = surname,
+                userId = user.userId,
+                isChecked = false
+            )
+        }
+        usersShareList.value = usersShareMap.values.toList()
     }
 
     fun onSearchButtonClicked() {
@@ -114,6 +148,46 @@ class GalleryViewModel(private val storageRepository: StorageRepository): Compos
             0 -> scenesList.value = availableScenes.values.toList()
             1 -> scenesList.value = availableScenes.filterValues { it.favourite }.values.toList()
             2 -> scenesList.value = availableScenes.filterValues { it.markedByTherapist }.values.toList()
+        }
+    }
+
+    fun onBookmarkClicked(scene: SceneDetails) {
+        val isMarkedState = scene.markedByTherapist
+
+        storageRepository.updateSceneBookmarkedField(scene.id, !isMarkedState)
+            .addOnSuccessListener {
+                userScenes[scene.id] = scene.copy(markedByTherapist = !isMarkedState)
+                availableScenes[scene.id] = scene.copy(markedByTherapist = !isMarkedState)
+                scenesList.value = availableScenes.values.toList()
+            }
+    }
+
+    fun onShareClicked(scene: SceneDetails) {
+        sceneToShare = scene
+        openUserShareDialog.value = true
+    }
+
+    fun onUserCheckboxClicked(userId: String) {
+        val isChecked = usersShareMap[userId]?.isChecked
+        usersShareMap[userId] = usersShareMap[userId]?.copy(isChecked = !isChecked!!)!!
+        usersShareList.value = usersShareMap.values.toList()
+    }
+
+    fun changeUserShareDialogState(state: Boolean) {
+        viewModelScope.launch(Dispatchers.Main) {
+            if (state && sceneToShare != null) {
+                withContext(Dispatchers.IO) {
+                    studentsRepository.saveSharedSceneForUsers(
+                        usersShareList.value.filter { it.isChecked }.map { it.userId },
+                        sceneToShare!!
+                    )
+                }
+                openUserShareDialog.value = false
+                createUsersShareList()
+            } else {
+                openUserShareDialog.value = false
+                createUsersShareList()
+            }
         }
     }
 }
