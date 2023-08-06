@@ -63,6 +63,7 @@ class ReadModeViewModel(private val storageRepository: StorageRepository): DataB
             appMode.value = withContext(Dispatchers.IO){ dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY) }
             scene = withContext(Dispatchers.IO) { storageRepository.getSceneDetails(sceneId) } ?: SceneDetails()
 
+            isFromStudentsGallery.value = (userId != null && userId == scene.imageLocation.split('/')[0])
             val (imageTask, imageUri) = withContext(Dispatchers.IO) { storageRepository.getImage(scene.imageLocation) }
             imageTask
                 .addOnSuccessListener {
