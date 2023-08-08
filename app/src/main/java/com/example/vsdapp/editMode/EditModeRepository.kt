@@ -5,7 +5,9 @@ import com.example.vsdapp.core.BaseRepository
 import com.example.vsdapp.models.GetIconsModel
 import com.example.vsdapp.models.SceneDetails
 import com.google.android.gms.tasks.Task
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.storage.UploadTask
 import com.google.firebase.storage.ktx.storageMetadata
 import kotlinx.coroutines.tasks.await
@@ -36,12 +38,15 @@ class EditModeRepository: BaseRepository() {
         val sceneToSave = scene.copy(
             userId = user!!.uid,
             id = docRef.id,
-            imageLocation = "${user.uid}/${scene.imageLocation}"
+            imageLocation = "${user.uid}/${scene.imageLocation}",
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
         )
         return Pair(docRef.set(sceneToSave), docRef.id)
     }
 
     fun updateSceneDetails(sceneId: String, scene: SceneDetails): Task<Void> {
-        return firestoreDb.collection("scenes").document(sceneId).set(scene)
+        val sceneToUpdate = scene.copy(updatedAt = Timestamp.now())
+        return firestoreDb.collection("scenes").document(sceneId).set(sceneToUpdate)
     }
 }

@@ -2,8 +2,6 @@ package com.example.vsdapp.gallery
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -43,7 +41,6 @@ import com.example.vsdapp.compose.LoadingScreen
 import com.example.vsdapp.core.DeleteScene
 import com.example.vsdapp.core.ViewState
 import com.example.vsdapp.core.runEventsCollector
-import com.example.vsdapp.database.AppDatabase
 import com.example.vsdapp.database.Scene
 import com.example.vsdapp.readMode.ReadModeActivity
 import com.example.vsdapp.views.PictogramDetails
@@ -53,13 +50,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.window.Dialog
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.net.toUri
 import com.example.vsdapp.compose.NoResultsDisclaimer
 import com.example.vsdapp.compose.OverflowMenu
 import com.example.vsdapp.compose.SegmentedButtons
+import com.example.vsdapp.compose.SortButton
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.models.SceneDetails
-import com.example.vsdapp.models.UserModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class GalleryActivity: AppCompatActivity(){
@@ -146,7 +144,8 @@ class GalleryActivity: AppCompatActivity(){
             openUserShareList = viewModel.openUserShareDialog.value,
             usersShareList = viewModel.usersShareList.value,
             onUserCheckboxClicked = { viewModel.onUserCheckboxClicked(it) },
-            changeUserShareDialogState = { viewModel.changeUserShareDialogState(it) }
+            changeUserShareDialogState = { viewModel.changeUserShareDialogState(it) },
+            onSortByClicked = { viewModel.updateScenesList(it) }
         )
     }
 }
@@ -176,7 +175,8 @@ fun GalleryContent(
     openUserShareList: Boolean,
     usersShareList: List<UserCheckBoxListModel>,
     onUserCheckboxClicked: ((String) -> Unit),
-    changeUserShareDialogState: ((Boolean) -> Unit)
+    changeUserShareDialogState: ((Boolean) -> Unit),
+    onSortByClicked: (SortByCategory) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -190,249 +190,262 @@ fun GalleryContent(
             onBackClicked = { onBackButtonClicked() },
             backButtonText = stringResource(R.string.top_nav_bar_back_arrow_text)
         )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        ConstraintLayout(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
         ) {
-            if (openAlertDialog) {
-                DeleteAlertDialog(
-                    changeAlertDialogState = changeAlertDialogState,
-                    onConfirmDeleteClicked = onConfirmDeleteClicked
-                )
-            }
+            val (sortButton, column) = createRefs()
 
-            if (appMode == AppMode.THERAPIST_MODE && openUserShareList) {
-                UsersShareList(
-                    usersList = usersShareList,
-                    onUserCheckboxClicked = onUserCheckboxClicked,
-                    changeDialogState = changeUserShareDialogState
-                )
-            }
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .padding(
-                        top = 8.dp,
-                        bottom = 16.dp,
-                        start = 32.dp
-                    )
-            ){
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { onSearchStringChanged.invoke(it) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onSearchButtonClickedAction() }
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = { onSearchStringChanged("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close icon",
-                                tint = colorResource(R.color.gray)
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .width(400.dp)
-                )
-                Button(
-                    onClick = onSearchButtonClickedAction,
-                    enabled = searchText != "",
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.search_button_title)
+                    .fillMaxHeight()
+                    .constrainAs(column) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+            ) {
+                if (openAlertDialog) {
+                    DeleteAlertDialog(
+                        changeAlertDialogState = changeAlertDialogState,
+                        onConfirmDeleteClicked = onConfirmDeleteClicked
                     )
                 }
-            }
 
-            SegmentedButtons(
-                buttonsTitles = listOf(
-                    stringResource(R.string.all_label),
-                    stringResource(R.string.favourite_label),
-                    stringResource(R.string.marked_label)
-                ),
-                onButtonClicked = onTabClicked,
-                selectedButton = selectedTabIndex
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_large)))
-
-            if (shouldShowNoResultsDisclaimer) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                ) {
-                    NoResultsDisclaimer(
-                        modifier = Modifier
-                            .padding(top = 100.dp)
-                            .align(Alignment.TopCenter)
+                if (appMode == AppMode.THERAPIST_MODE && openUserShareList) {
+                    UsersShareList(
+                        usersList = usersShareList,
+                        onUserCheckboxClicked = onUserCheckboxClicked,
+                        changeDialogState = changeUserShareDialogState
                     )
                 }
-            } else {
-                LazyColumn(
-                    state = rememberLazyListState()
-                ) {
-                    items(
-                        items = scenesList,
-                        key = { it.id }
-                    ) { scene ->
-                        val image = remember { scene.imageUrl.toUri() }
-                        Card(
-                            border = BorderStroke(
-                                width = 2.dp,
-                                color = colorResource(id = R.color.nav_bar_background)
-                            ),
-                            elevation = 0.dp,
-                            modifier = Modifier
-                                .width(600.dp)
-                                .clickable { onSceneClicked(scene) }
-                                .padding(bottom = 4.dp)
-                                .animateItemPlacement()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .padding(4.dp)
-                            ) {
-                                Card(
-                                modifier = Modifier
-                                    .border(1.dp, Color.Black)
-                                ) {
-                                    if (image != Uri.EMPTY) {
-                                        Image(
-                                            painter = rememberImagePainter(image),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(150.dp)
-                                        )
-                                    } else {
-                                        Image(
-                                            painter = rememberImagePainter(
-                                               remember { R.drawable.ic_launcher_foreground}
-                                            ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(150.dp)
-                                        )
-                                    }
-                                }
-                                Text(
-                                    text = scene.title,
-                                    modifier = Modifier
-                                        .padding(start = 16.dp)
-                                        .weight(1f)
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(
+                            top = 8.dp,
+                            bottom = 16.dp,
+                            start = 32.dp
+                        )
+                ){
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { onSearchStringChanged.invoke(it) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { onSearchButtonClickedAction() }
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { onSearchStringChanged("") }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close icon",
+                                    tint = colorResource(R.color.gray)
                                 )
-                                if (appMode == AppMode.THERAPIST_MODE) {
-                                    OverflowMenu(
+                            }
+                        },
+                        modifier = Modifier
+                            .width(400.dp)
+                    )
+                    Button(
+                        onClick = onSearchButtonClickedAction,
+                        enabled = searchText != "",
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.search_button_title)
+                        )
+                    }
+                }
+
+                SegmentedButtons(
+                    buttonsTitles = listOf(
+                        stringResource(R.string.all_label),
+                        stringResource(R.string.favourite_label),
+                        stringResource(R.string.marked_label)
+                    ),
+                    onButtonClicked = onTabClicked,
+                    selectedButton = selectedTabIndex
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_large)))
+
+                if (shouldShowNoResultsDisclaimer) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        NoResultsDisclaimer(
+                            modifier = Modifier
+                                .padding(top = 100.dp)
+                                .align(Alignment.TopCenter)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = rememberLazyListState()
+                    ) {
+                        items(
+                            items = scenesList,
+                            key = { it.id }
+                        ) { scene ->
+                            val image = remember { scene.imageUrl.toUri() }
+                            Card(
+                                border = BorderStroke(
+                                    width = 2.dp,
+                                    color = colorResource(id = R.color.nav_bar_background)
+                                ),
+                                elevation = 0.dp,
+                                modifier = Modifier
+                                    .width(600.dp)
+                                    .clickable { onSceneClicked(scene) }
+                                    .padding(bottom = 4.dp)
+                                    .animateItemPlacement()
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                ) {
+                                    Card(
                                         modifier = Modifier
-                                            .size(48.dp)
-                                            .padding(end = 16.dp)
+                                            .border(1.dp, Color.Black)
                                     ) {
-                                        DropdownMenuItem(onClick = { onFavouriteClicked(scene) }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ){
-                                                Text(text = stringResource(R.string.favourite_label))
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                IconButton(
-                                                    onClick = { onFavouriteClicked(scene) },
-                                                    modifier = Modifier
-                                                        .size(48.dp)
-                                                ) {
-                                                    Image(
-                                                        imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                                        contentDescription = "Delete icon",
-                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        DropdownMenuItem(onClick = { onBookmarkClicked(scene) }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ){
-                                                Text(text = stringResource(R.string.marked_label))
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                IconButton(
-                                                    onClick = { onBookmarkClicked(scene) },
-                                                    modifier = Modifier
-                                                        .padding(end = 8.dp)
-                                                        .size(32.dp)
-                                                ) {
-                                                    Icon(
-                                                        painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(R.drawable.bookmark_48px),
-                                                        contentDescription = "Delete icon",
-                                                        tint = colorResource(id = R.color.red_x),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        DropdownMenuItem(onClick = { onDeleteSceneClicked(scene) }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ){
-                                                Text(text = stringResource(R.string.delete_scene))
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                IconButton(
-                                                    onClick = { onDeleteSceneClicked(scene) },
-                                                    modifier = Modifier
-                                                        .size(48.dp)
-                                                ) {
-                                                    Image(
-                                                        imageVector = Icons.Filled.Delete,
-                                                        contentDescription = "Delete icon",
-                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        DropdownMenuItem(onClick = { onShareClicked(scene) }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ){
-                                                Text(text = stringResource(R.string.share_to_students_label))
-                                                Spacer(modifier = Modifier.weight(1f))
-                                                IconButton(
-                                                    onClick = { onShareClicked(scene) },
-                                                    modifier = Modifier
-                                                        .size(48.dp)
-                                                ) {
-                                                    Image(
-                                                        imageVector = Icons.Filled.Share,
-                                                        contentDescription = "Delete icon",
-                                                        colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                                    )
-                                                }
-                                            }
+                                        if (image != Uri.EMPTY) {
+                                            Image(
+                                                painter = rememberImagePainter(image),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(150.dp)
+                                            )
+                                        } else {
+                                            Image(
+                                                painter = rememberImagePainter(
+                                                    remember { R.drawable.ic_launcher_foreground}
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(150.dp)
+                                            )
                                         }
                                     }
-                                } else {
-                                    IconButton(
-                                        onClick = { onFavouriteClicked(scene) },
+                                    Text(
+                                        text = scene.title,
                                         modifier = Modifier
-                                            .size(48.dp)
-                                            .padding(end = 16.dp)
-                                    ) {
-                                        Image(
-                                            imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                            contentDescription = "Delete icon",
-                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
-                                        )
-                                    }
-                                    if (appMode != AppMode.CHILD_MODE) {
+                                            .padding(start = 16.dp)
+                                            .weight(1f)
+                                    )
+                                    if (appMode == AppMode.THERAPIST_MODE) {
+                                        OverflowMenu(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .padding(end = 16.dp)
+                                        ) {
+                                            DropdownMenuItem(onClick = { onFavouriteClicked(scene) }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ){
+                                                    Text(text = stringResource(R.string.favourite_label))
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    IconButton(
+                                                        onClick = { onFavouriteClicked(scene) },
+                                                        modifier = Modifier
+                                                            .size(48.dp)
+                                                    ) {
+                                                        Image(
+                                                            imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                                                            contentDescription = "Delete icon",
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            DropdownMenuItem(onClick = { onBookmarkClicked(scene) }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ){
+                                                    Text(text = stringResource(R.string.marked_label))
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    IconButton(
+                                                        onClick = { onBookmarkClicked(scene) },
+                                                        modifier = Modifier
+                                                            .padding(end = 8.dp)
+                                                            .size(32.dp)
+                                                    ) {
+                                                        Icon(
+                                                            painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(R.drawable.bookmark_48px),
+                                                            contentDescription = "Delete icon",
+                                                            tint = colorResource(id = R.color.red_x),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            DropdownMenuItem(onClick = { onDeleteSceneClicked(scene) }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ){
+                                                    Text(text = stringResource(R.string.delete_scene))
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    IconButton(
+                                                        onClick = { onDeleteSceneClicked(scene) },
+                                                        modifier = Modifier
+                                                            .size(48.dp)
+                                                    ) {
+                                                        Image(
+                                                            imageVector = Icons.Filled.Delete,
+                                                            contentDescription = "Delete icon",
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            DropdownMenuItem(onClick = { onShareClicked(scene) }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ){
+                                                    Text(text = stringResource(R.string.share_to_students_label))
+                                                    Spacer(modifier = Modifier.weight(1f))
+                                                    IconButton(
+                                                        onClick = { onShareClicked(scene) },
+                                                        modifier = Modifier
+                                                            .size(48.dp)
+                                                    ) {
+                                                        Image(
+                                                            imageVector = Icons.Filled.Share,
+                                                            contentDescription = "Delete icon",
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } else {
                                         IconButton(
-                                            onClick = { onDeleteSceneClicked(scene) },
+                                            onClick = { onFavouriteClicked(scene) },
                                             modifier = Modifier
                                                 .size(48.dp)
                                                 .padding(end = 16.dp)
                                         ) {
                                             Image(
-                                                imageVector = Icons.Filled.Delete,
+                                                imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                                 contentDescription = "Delete icon",
                                                 colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
                                             )
+                                        }
+                                        if (appMode != AppMode.CHILD_MODE) {
+                                            IconButton(
+                                                onClick = { onDeleteSceneClicked(scene) },
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .padding(end = 16.dp)
+                                            ) {
+                                                Image(
+                                                    imageVector = Icons.Filled.Delete,
+                                                    contentDescription = "Delete icon",
+                                                    colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -441,6 +454,19 @@ fun GalleryContent(
                     }
                 }
             }
+
+            SortButton(
+                onSortByClicked = onSortByClicked,
+                modifier = Modifier
+                    .constrainAs(sortButton){
+                        top.linkTo(parent.top)
+                        end.linkTo(column.start)
+                    }
+                    .padding(
+                        top = 120.dp,
+                        end = 16.dp
+                    )
+            )
         }
     }
 }
@@ -557,7 +583,7 @@ private fun UsersShareList(
 
 @Preview(
     showBackground = true,
-    widthDp = 800
+    widthDp = 900
 )
 @Composable
 fun GalleryContentPreview() {
@@ -585,7 +611,8 @@ fun GalleryContentPreview() {
         openUserShareList = false,
         usersShareList = listOf(),
         onUserCheckboxClicked = {},
-        changeUserShareDialogState = {}
+        changeUserShareDialogState = {},
+        onSortByClicked = {}
     )
 }
 

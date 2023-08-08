@@ -1,6 +1,7 @@
 package com.example.vsdapp.models
 
 import com.example.vsdapp.views.PictogramDetails
+import com.google.firebase.Timestamp
 
 data class SceneDetails(
     val id: String = "",
@@ -10,5 +11,7 @@ data class SceneDetails(
     val pictograms: List<PictogramDetails> = listOf(),
     val userId: String = "",
     val favourite: Boolean = false,
-    val markedByTherapist: Boolean = false
+    val markedByTherapist: Boolean = false,
+    val createdAt: Timestamp = Timestamp.now(),
+    val updatedAt: Timestamp = Timestamp.now()
 )

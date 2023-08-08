@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,6 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.net.toUri
 import coil.compose.rememberImagePainter
 import com.example.vsdapp.R
@@ -60,8 +62,10 @@ import com.example.vsdapp.compose.GalleryTopNavBar
 import com.example.vsdapp.compose.LoadingScreen
 import com.example.vsdapp.compose.NoResultsDisclaimer
 import com.example.vsdapp.compose.SegmentedButtons
+import com.example.vsdapp.compose.SortButton
 import com.example.vsdapp.core.Constants
 import com.example.vsdapp.core.ViewState
+import com.example.vsdapp.gallery.SortByCategory
 import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.models.UserModel
 import com.example.vsdapp.readMode.ReadModeActivity
@@ -117,7 +121,8 @@ class StudentsGalleryActivity: AppCompatActivity() {
                         userName = viewModel.userName.value,
                         userSurname = viewModel.userSurname.value,
                         onTabClicked = { viewModel.onTabClicked(it) },
-                        tabIndex = viewModel.tabIndex.value
+                        tabIndex = viewModel.tabIndex.value,
+                        onSortByClicked = { viewModel.updateScenesList(it) }
                     )
                 }
                 else -> {}
@@ -140,7 +145,8 @@ fun StudentsGalleryContent(
     userName: String,
     userSurname: String,
     tabIndex: Int,
-    onTabClicked: (Int) -> Unit
+    onTabClicked: (Int) -> Unit,
+    onSortByClicked: (SortByCategory) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -157,154 +163,182 @@ fun StudentsGalleryContent(
             onBackClicked = { onBackButtonClicked() },
             backButtonText = stringResource(R.string.top_nav_bar_back_arrow_text)
         )
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
+        ConstraintLayout(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
         ) {
-            Text(
-                text = stringResource(R.string.user_gallery, userName, userSurname),
-                fontSize = 28.sp,
-                modifier = Modifier
-                    .padding(
-                        top = dimensionResource(R.dimen.margin_large),
-                        bottom = dimensionResource(R.dimen.margin_large)
-                    )
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .padding(
-                        top = 8.dp,
-                        bottom = 16.dp,
-                        start = 32.dp
-                    )
-            ){
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { onSearchStringChanged.invoke(it) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onSearchButtonClickedAction() }
-                    ),
-                    trailingIcon = {
-                        IconButton(onClick = { onSearchStringChanged("") }) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close icon",
-                                tint = colorResource(R.color.gray)
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .width(400.dp)
-                )
-                Button(
-                    onClick = onSearchButtonClickedAction,
-                    enabled = searchText != "",
-                    modifier = Modifier.padding(start = 8.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.search_button_title)
-                    )
-                }
-            }
-            
-            SegmentedButtons(
-                buttonsTitles = tabs,
-                onButtonClicked = onTabClicked,
-                selectedButton = tabIndex
-            )
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_large)))
+            val (sortButton, column) = createRefs()
 
-            if (shouldShowNoResultsDisclaimer) {
-                Box(
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .constrainAs(column) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+            ) {
+                Text(
+                    text = stringResource(R.string.user_gallery, userName, userSurname),
+                    fontSize = 28.sp,
                     modifier = Modifier
-                        .fillMaxSize()
+                        .padding(
+                            top = dimensionResource(R.dimen.margin_large),
+                            bottom = dimensionResource(R.dimen.margin_large)
+                        )
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(
+                            top = 8.dp,
+                            bottom = 16.dp,
+                            start = 32.dp
+                        )
                 ) {
-                    NoResultsDisclaimer(
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { onSearchStringChanged.invoke(it) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = { onSearchButtonClickedAction() }
+                        ),
+                        trailingIcon = {
+                            IconButton(onClick = { onSearchStringChanged("") }) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Close icon",
+                                    tint = colorResource(R.color.gray)
+                                )
+                            }
+                        },
                         modifier = Modifier
-                            .padding(top = 100.dp)
-                            .align(Alignment.TopCenter)
+                            .width(400.dp)
                     )
+                    Button(
+                        onClick = onSearchButtonClickedAction,
+                        enabled = searchText != "",
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.search_button_title)
+                        )
+                    }
                 }
-            } else {
-                LazyColumn(
-                    state = rememberLazyListState()
-                ) {
-                    items(
-                        items = scenesList,
-                        key = { it.id }
-                    ) { scene ->
-                        val image = remember { scene.imageUrl.toUri() }
-                        Card(
-                            border = BorderStroke(
-                                width = 2.dp,
-                                color = colorResource(id = R.color.nav_bar_background)
-                            ),
-                            elevation = 0.dp,
+
+                SegmentedButtons(
+                    buttonsTitles = tabs,
+                    onButtonClicked = onTabClicked,
+                    selectedButton = tabIndex
+                )
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.margin_large)))
+
+                if (shouldShowNoResultsDisclaimer) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        NoResultsDisclaimer(
                             modifier = Modifier
-                                .width(600.dp)
-                                .clickable { onSceneClicked(scene) }
-                                .padding(bottom = 4.dp)
-                                .animateItemPlacement()
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
+                                .padding(top = 100.dp)
+                                .align(Alignment.TopCenter)
+                        )
+                    }
+                } else {
+                    LazyColumn(
+                        state = rememberLazyListState()
+                    ) {
+                        items(
+                            items = scenesList,
+                            key = { it.id }
+                        ) { scene ->
+                            val image = remember { scene.imageUrl.toUri() }
+                            Card(
+                                border = BorderStroke(
+                                    width = 2.dp,
+                                    color = colorResource(id = R.color.nav_bar_background)
+                                ),
+                                elevation = 0.dp,
                                 modifier = Modifier
-                                    .padding(4.dp)
+                                    .width(600.dp)
+                                    .clickable { onSceneClicked(scene) }
+                                    .padding(bottom = 4.dp)
+                                    .animateItemPlacement()
                             ) {
-                                Card(
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
-                                        .border(1.dp, Color.Black)
+                                        .padding(4.dp)
                                 ) {
-                                    if (image != Uri.EMPTY) {
+                                    Card(
+                                        modifier = Modifier
+                                            .border(1.dp, Color.Black)
+                                    ) {
+                                        if (image != Uri.EMPTY) {
+                                            Image(
+                                                painter = rememberImagePainter(image),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(150.dp)
+                                            )
+                                        } else {
+                                            Image(
+                                                painter = rememberImagePainter(
+                                                    remember { R.drawable.ic_launcher_foreground }
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(150.dp)
+                                            )
+                                        }
+                                    }
+                                    Text(
+                                        text = scene.title,
+                                        modifier = Modifier
+                                            .padding(start = 16.dp)
+                                            .weight(1f)
+                                    )
+                                    IconButton(
+                                        onClick = { onAddBookmarkSceneClicked(scene) },
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .padding(end = 16.dp)
+                                    ) {
                                         Image(
-                                            painter = rememberImagePainter(image),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(150.dp)
-                                        )
-                                    } else {
-                                        Image(
-                                            painter = rememberImagePainter(
-                                                remember { R.drawable.ic_launcher_foreground}
+                                            painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(
+                                                R.drawable.bookmark_48px
                                             ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(150.dp)
+                                            contentDescription = "Delete icon",
+                                            colorFilter = ColorFilter.tint(colorResource(R.color.light_purple)),
                                         )
                                     }
-                                }
-                                Text(
-                                    text = scene.title,
-                                    modifier = Modifier
-                                        .padding(start = 16.dp)
-                                        .weight(1f)
-                                )
-                                IconButton(
-                                    onClick = { onAddBookmarkSceneClicked(scene) },
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .padding(end = 16.dp)
-                                ) {
-                                    Image(
-                                        painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(R.drawable.bookmark_48px),
-                                        contentDescription = "Delete icon",
-                                        colorFilter = ColorFilter.tint(colorResource(R.color.light_purple)),
-                                    )
                                 }
                             }
                         }
                     }
                 }
             }
+
+            SortButton(
+                onSortByClicked = onSortByClicked,
+                modifier = Modifier
+                    .constrainAs(sortButton){
+                        top.linkTo(parent.top)
+                        end.linkTo(column.start)
+                    }
+                    .padding(
+                        top = 190.dp,
+                        end = 16.dp
+                    )
+            )
         }
     }
 }
 
 @Preview(
     showBackground = true,
-    widthDp = 800
+    widthDp = 900
 )
 @Composable
 fun GalleryContentPreview() {
@@ -327,6 +361,7 @@ fun GalleryContentPreview() {
         userName = "Aneta",
         userSurname = "Klej",
         onTabClicked = {},
-        tabIndex = 1
+        tabIndex = 1,
+        onSortByClicked = {}
     )
 }
