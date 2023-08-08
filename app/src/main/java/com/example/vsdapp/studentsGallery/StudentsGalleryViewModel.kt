@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.database.StorageRepository
+import com.example.vsdapp.gallery.SortByCategory
 import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.models.UserModel
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,8 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
     var tabIndex = mutableStateOf(0)
         private set
 
+    private var sortByCategory: SortByCategory = SortByCategory.NONE
+
     fun setInitialData(userModel: UserModel) {
         this.userModel = userModel
         userName.value = if (userModel.childName.isNullOrEmpty()) userModel.mainName else userModel.childName!!
@@ -49,7 +52,7 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
             }
             availableScenes = tmpMap
             userScenes = tmpMap
-            scenesList.value = tmpMap.toMap().values.toList()
+            updateScenesList(newList = tmpMap.toMap().values.toList())
         }.invokeOnCompletion { showContent() }
     }
 
@@ -57,7 +60,7 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
         viewModelScope.launch(Dispatchers.Main) {
             val sceneList = userScenes.filter { it.value.title.contains(searchInput.value) }
             availableScenes = sceneList.toMutableMap()
-            scenesList.value = availableScenes.values.toList()
+            updateScenesList(newList = availableScenes.values.toList())
             shouldShowNoResultsDisclaimer.value = sceneList.isEmpty()
         }
     }
@@ -67,7 +70,7 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
             searchInput.value = newSearch
             if (searchInput.value == "") {
                 availableScenes = userScenes
-                scenesList.value = userScenes.values.toList()
+                updateScenesList(newList = userScenes.values.toList())
                 shouldShowNoResultsDisclaimer.value = false
             }
         }
@@ -80,16 +83,47 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
             .addOnSuccessListener {
                 userScenes[sceneDetails.id] = sceneDetails.copy(markedByTherapist = !isMarkedState)
                 availableScenes[sceneDetails.id] = sceneDetails.copy(markedByTherapist = !isMarkedState)
-                scenesList.value = availableScenes.values.toList()
+                updateScenesList(newList = availableScenes.values.toList())
             }
     }
 
     fun onTabClicked(tabIndex: Int) {
         this.tabIndex.value = tabIndex
         when (tabIndex) {
-            0 -> scenesList.value = availableScenes.values.toList()
-            1 -> scenesList.value = availableScenes.filterValues { it.markedByTherapist }.values.toList()
+            0 -> updateScenesList(newList = availableScenes.values.toList())
+            1 -> updateScenesList(newList = availableScenes.filterValues { it.markedByTherapist }.values.toList())
         }
 
+    }
+
+    fun updateScenesList(category: SortByCategory? = null, newList: List<SceneDetails>? = null) {
+        if (category != null) {
+            sortByCategory = category
+            when (category) {
+                SortByCategory.CREATION_DATE_DESC -> scenesList.value =
+                    scenesList.value.sortedByDescending { it.createdAt }
+
+                SortByCategory.CREATION_DATE_ASC -> scenesList.value =
+                    scenesList.value.sortedBy { it.createdAt }
+
+                SortByCategory.UPDATE_DATE -> scenesList.value =
+                    scenesList.value.sortedByDescending { it.updatedAt }
+
+                SortByCategory.NONE -> {}
+            }
+        } else if (newList != null) {
+            when (sortByCategory) {
+                SortByCategory.CREATION_DATE_DESC -> scenesList.value =
+                    newList.sortedByDescending { it.createdAt }
+
+                SortByCategory.CREATION_DATE_ASC -> scenesList.value =
+                    newList.sortedBy { it.createdAt }
+
+                SortByCategory.UPDATE_DATE -> scenesList.value =
+                    newList.sortedByDescending { it.updatedAt }
+
+                SortByCategory.NONE -> scenesList.value = newList
+            }
+        }
     }
 }

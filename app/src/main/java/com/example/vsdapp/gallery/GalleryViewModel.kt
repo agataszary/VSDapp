@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.core.PreferencesDataStore
-import com.example.vsdapp.database.SceneDao
 import com.example.vsdapp.database.StorageRepository
 import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.models.UserModel
@@ -50,6 +49,8 @@ class GalleryViewModel(
     private var availableScenes: MutableMap<String, SceneDetails> = mutableMapOf()
     private var savedUsersList: List<UserModel> = listOf()
 
+    private var sortByCategory: SortByCategory = SortByCategory.NONE
+
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
             showProgress()
@@ -61,7 +62,7 @@ class GalleryViewModel(
             appMode.value = withContext(Dispatchers.IO) {dataStore.getPreference(PreferencesDataStore.APP_MODE_KEY)}
             availableScenes = tmpMap
             userScenes = tmpMap
-            scenesList.value = tmpMap.values.toList()
+            updateScenesList(newList = tmpMap.values.toList())
 
             if (appMode.value == AppMode.THERAPIST_MODE) {
                 savedUsersList = withContext(Dispatchers.IO) { studentsRepository.getSavedUsers() }
@@ -88,7 +89,7 @@ class GalleryViewModel(
         viewModelScope.launch(Dispatchers.Main) {
             val sceneList = userScenes.filter { it.value.title.contains(searchInput.value) }
             availableScenes = sceneList.toMutableMap()
-            scenesList.value = sceneList.values.toList()
+            updateScenesList(newList = sceneList.values.toList())
             shouldShowNoResultsDisclaimer.value = sceneList.isEmpty()
         }
     }
@@ -98,7 +99,7 @@ class GalleryViewModel(
             searchInput.value = newSearch
             if (searchInput.value == "") {
                 availableScenes = userScenes
-                scenesList.value = userScenes.values.toList()
+                updateScenesList(newList = userScenes.values.toList())
                 shouldShowNoResultsDisclaimer.value = false
             }
         }
@@ -115,7 +116,7 @@ class GalleryViewModel(
                 storageRepository.deleteScene(scene.id, scene.imageLocation)
                 userScenes = userScenes.filter { it.key != scene.id}.toMutableMap()
                 availableScenes = availableScenes.filter { it.key != scene.id }.toMutableMap()
-                scenesList.value = availableScenes.values.toList()
+                updateScenesList(newList = availableScenes.values.toList())
             }
         }
     }
@@ -137,7 +138,7 @@ class GalleryViewModel(
             .addOnSuccessListener {
                 userScenes[scene.id] = scene.copy(favourite = !isFavourite)
                 availableScenes[scene.id] = scene.copy(favourite = !isFavourite)
-                scenesList.value = availableScenes.values.toList()
+                updateScenesList(newList = availableScenes.values.toList())
             }
     }
 
@@ -145,9 +146,9 @@ class GalleryViewModel(
         tabIndex.value = index
 
         when(index) {
-            0 -> scenesList.value = availableScenes.values.toList()
-            1 -> scenesList.value = availableScenes.filterValues { it.favourite }.values.toList()
-            2 -> scenesList.value = availableScenes.filterValues { it.markedByTherapist }.values.toList()
+            0 -> updateScenesList(newList = availableScenes.values.toList())
+            1 -> updateScenesList(newList = availableScenes.filterValues { it.favourite }.values.toList())
+            2 -> updateScenesList(newList = availableScenes.filterValues { it.markedByTherapist }.values.toList())
         }
     }
 
@@ -158,7 +159,7 @@ class GalleryViewModel(
             .addOnSuccessListener {
                 userScenes[scene.id] = scene.copy(markedByTherapist = !isMarkedState)
                 availableScenes[scene.id] = scene.copy(markedByTherapist = !isMarkedState)
-                scenesList.value = availableScenes.values.toList()
+                updateScenesList(newList = availableScenes.values.toList())
             }
     }
 
@@ -187,6 +188,38 @@ class GalleryViewModel(
             } else {
                 openUserShareDialog.value = false
                 createUsersShareList()
+            }
+        }
+    }
+
+
+    fun updateScenesList(category: SortByCategory? = null, newList: List<SceneDetails>? = null) {
+        if (category != null) {
+            sortByCategory = category
+            when (category) {
+                SortByCategory.CREATION_DATE_DESC -> scenesList.value =
+                    scenesList.value.sortedByDescending { it.createdAt }
+
+                SortByCategory.CREATION_DATE_ASC -> scenesList.value =
+                    scenesList.value.sortedBy { it.createdAt }
+
+                SortByCategory.UPDATE_DATE -> scenesList.value =
+                    scenesList.value.sortedByDescending { it.updatedAt }
+
+                SortByCategory.NONE -> {}
+            }
+        } else if (newList != null) {
+            when (sortByCategory) {
+                SortByCategory.CREATION_DATE_DESC -> scenesList.value =
+                    newList.sortedByDescending { it.createdAt }
+
+                SortByCategory.CREATION_DATE_ASC -> scenesList.value =
+                    newList.sortedBy { it.createdAt }
+
+                SortByCategory.UPDATE_DATE -> scenesList.value =
+                    newList.sortedByDescending { it.updatedAt }
+
+                SortByCategory.NONE -> scenesList.value = newList
             }
         }
     }

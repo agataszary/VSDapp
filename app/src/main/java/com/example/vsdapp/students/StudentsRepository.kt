@@ -8,6 +8,7 @@ import com.example.vsdapp.core.SuccessEmpty
 import com.example.vsdapp.models.SceneDetails
 import com.example.vsdapp.models.UserModel
 import com.google.android.gms.tasks.Task
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.Filter
 import com.google.firebase.firestore.auth.User
@@ -48,7 +49,9 @@ class StudentsRepository: BaseRepository() {
                 userId = userId,
                 id = docRef.id,
                 favourite = false,
-                markedByTherapist = false
+                markedByTherapist = false,
+                createdAt = Timestamp.now(),
+                updatedAt = Timestamp.now()
             )
             docRef.set(sceneToSave)
         }

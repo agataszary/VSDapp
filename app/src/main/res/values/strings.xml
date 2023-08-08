@@ -61,4 +61,8 @@
     <string name="delete_scene">Usuń</string>
     <string name="choose_users">Wybierz użytkowników</string>
     <string name="share_label">Udostępnij</string>
+    <string name="sort_by_label">Sortuj:</string>
+    <string name="sort_by_creation_date_desc">Od najnowszych</string>
+    <string name="sort_by_creation_date_asc">Od najstarszych</string>
+    <string name="sort_by_update_date">Ostatnio aktualizowane</string>
 </resources>
