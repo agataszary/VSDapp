@@ -1,6 +1,8 @@
 package com.example.vsdapp.studentsGallery
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.ComposeViewModel
 import com.example.vsdapp.database.StorageRepository
@@ -34,7 +36,8 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
     var tabIndex = mutableStateOf(0)
         private set
 
-    private var sortByCategory: SortByCategory = SortByCategory.NONE
+    var sortByCategory by mutableStateOf(SortByCategory.NONE)
+        private set
 
     fun setInitialData(userModel: UserModel) {
         this.userModel = userModel
@@ -109,6 +112,9 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
                 SortByCategory.UPDATE_DATE -> scenesList.value =
                     scenesList.value.sortedByDescending { it.updatedAt }
 
+                SortByCategory.ALPHABETICAL -> scenesList.value =
+                    scenesList.value.sortedBy { it.title }
+
                 SortByCategory.NONE -> {}
             }
         } else if (newList != null) {
@@ -121,6 +127,9 @@ class StudentsGalleryViewModel(private val storageRepository: StorageRepository)
 
                 SortByCategory.UPDATE_DATE -> scenesList.value =
                     newList.sortedByDescending { it.updatedAt }
+
+                SortByCategory.ALPHABETICAL -> scenesList.value =
+                    newList.sortedBy { it.title }
 
                 SortByCategory.NONE -> scenesList.value = newList
             }

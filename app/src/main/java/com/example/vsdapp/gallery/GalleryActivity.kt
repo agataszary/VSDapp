@@ -145,7 +145,8 @@ class GalleryActivity: AppCompatActivity(){
             usersShareList = viewModel.usersShareList.value,
             onUserCheckboxClicked = { viewModel.onUserCheckboxClicked(it) },
             changeUserShareDialogState = { viewModel.changeUserShareDialogState(it) },
-            onSortByClicked = { viewModel.updateScenesList(it) }
+            onSortByClicked = { viewModel.updateScenesList(it) },
+            sortByCategory = viewModel.sortByCategory
         )
     }
 }
@@ -176,7 +177,8 @@ fun GalleryContent(
     usersShareList: List<UserCheckBoxListModel>,
     onUserCheckboxClicked: ((String) -> Unit),
     changeUserShareDialogState: ((Boolean) -> Unit),
-    onSortByClicked: (SortByCategory) -> Unit
+    onSortByClicked: (SortByCategory) -> Unit,
+    sortByCategory: SortByCategory
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -457,6 +459,7 @@ fun GalleryContent(
 
             SortButton(
                 onSortByClicked = onSortByClicked,
+                sortCategory = sortByCategory,
                 modifier = Modifier
                     .constrainAs(sortButton){
                         top.linkTo(parent.top)
@@ -612,7 +615,8 @@ fun GalleryContentPreview() {
         usersShareList = listOf(),
         onUserCheckboxClicked = {},
         changeUserShareDialogState = {},
-        onSortByClicked = {}
+        onSortByClicked = {},
+        sortByCategory = SortByCategory.ALPHABETICAL
     )
 }
 

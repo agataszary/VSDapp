@@ -25,6 +25,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.vsdapp.R
@@ -33,6 +34,7 @@ import com.example.vsdapp.gallery.SortByCategory
 @Composable
 fun SortButton(
     onSortByClicked: (SortByCategory) -> Unit,
+    sortCategory: SortByCategory,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -66,19 +68,37 @@ fun SortButton(
                 onSortByClicked(SortByCategory.CREATION_DATE_DESC)
                 expanded = false
             }) {
-                Text(text = stringResource(R.string.sort_by_creation_date_desc))
+                Text(
+                    text = stringResource(R.string.sort_by_creation_date_desc),
+                    fontWeight = if (sortCategory == SortByCategory.CREATION_DATE_DESC) FontWeight.Bold else FontWeight.Normal
+                )
             }
             DropdownMenuItem(onClick = {
                 onSortByClicked(SortByCategory.CREATION_DATE_ASC)
                 expanded = false
             }) {
-                Text(text = stringResource(R.string.sort_by_creation_date_asc))
+                Text(
+                    text = stringResource(R.string.sort_by_creation_date_asc),
+                    fontWeight = if (sortCategory == SortByCategory.CREATION_DATE_ASC) FontWeight.Bold else FontWeight.Normal
+                )
             }
             DropdownMenuItem(onClick = {
                 onSortByClicked(SortByCategory.UPDATE_DATE)
                 expanded = false
             }) {
-                Text(text = stringResource(R.string.sort_by_update_date))
+                Text(
+                    text = stringResource(R.string.sort_by_update_date),
+                    fontWeight = if (sortCategory == SortByCategory.UPDATE_DATE) FontWeight.Bold else FontWeight.Normal
+                )
+            }
+            DropdownMenuItem(onClick = {
+                onSortByClicked(SortByCategory.ALPHABETICAL)
+                expanded = false
+            }) {
+                Text(
+                    text = stringResource(R.string.sort_by_alphabetical),
+                    fontWeight = if (sortCategory == SortByCategory.ALPHABETICAL) FontWeight.Bold else FontWeight.Normal
+                )
             }
         }
     }
@@ -90,6 +110,7 @@ fun SortButton(
 @Composable
 private fun SortButtonPreview() {
     SortButton(
-        onSortByClicked = {}
+        onSortByClicked = {},
+        sortCategory = SortByCategory.UPDATE_DATE
     )
 }

@@ -65,4 +65,5 @@
     <string name="sort_by_creation_date_desc">Od najnowszych</string>
     <string name="sort_by_creation_date_asc">Od najstarszych</string>
     <string name="sort_by_update_date">Ostatnio aktualizowane</string>
+    <string name="sort_by_alphabetical">Alfabetycznie</string>
 </resources>

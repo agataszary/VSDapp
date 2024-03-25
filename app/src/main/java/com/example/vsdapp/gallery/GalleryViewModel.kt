@@ -1,6 +1,8 @@
 package com.example.vsdapp.gallery
 
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewModelScope
 import com.example.vsdapp.core.AppMode
 import com.example.vsdapp.core.ComposeViewModel
@@ -49,7 +51,8 @@ class GalleryViewModel(
     private var availableScenes: MutableMap<String, SceneDetails> = mutableMapOf()
     private var savedUsersList: List<UserModel> = listOf()
 
-    private var sortByCategory: SortByCategory = SortByCategory.NONE
+    var sortByCategory by mutableStateOf(SortByCategory.NONE)
+        private set
 
     fun loadData() {
         viewModelScope.launch(Dispatchers.Main) {
@@ -206,6 +209,9 @@ class GalleryViewModel(
                 SortByCategory.UPDATE_DATE -> scenesList.value =
                     scenesList.value.sortedByDescending { it.updatedAt }
 
+                SortByCategory.ALPHABETICAL -> scenesList.value =
+                    scenesList.value.sortedBy { it.title }
+
                 SortByCategory.NONE -> {}
             }
         } else if (newList != null) {
@@ -218,6 +224,9 @@ class GalleryViewModel(
 
                 SortByCategory.UPDATE_DATE -> scenesList.value =
                     newList.sortedByDescending { it.updatedAt }
+
+                SortByCategory.ALPHABETICAL -> scenesList.value =
+                    newList.sortedBy { it.title }
 
                 SortByCategory.NONE -> scenesList.value = newList
             }

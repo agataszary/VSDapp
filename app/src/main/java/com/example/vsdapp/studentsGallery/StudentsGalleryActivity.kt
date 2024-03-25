@@ -122,7 +122,8 @@ class StudentsGalleryActivity: AppCompatActivity() {
                         userSurname = viewModel.userSurname.value,
                         onTabClicked = { viewModel.onTabClicked(it) },
                         tabIndex = viewModel.tabIndex.value,
-                        onSortByClicked = { viewModel.updateScenesList(it) }
+                        onSortByClicked = { viewModel.updateScenesList(it) },
+                        sortByCategory = viewModel.sortByCategory
                     )
                 }
                 else -> {}
@@ -146,7 +147,8 @@ fun StudentsGalleryContent(
     userSurname: String,
     tabIndex: Int,
     onTabClicked: (Int) -> Unit,
-    onSortByClicked: (SortByCategory) -> Unit
+    onSortByClicked: (SortByCategory) -> Unit,
+    sortByCategory: SortByCategory
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -322,6 +324,7 @@ fun StudentsGalleryContent(
 
             SortButton(
                 onSortByClicked = onSortByClicked,
+                sortCategory = sortByCategory,
                 modifier = Modifier
                     .constrainAs(sortButton){
                         top.linkTo(parent.top)
@@ -362,6 +365,7 @@ fun GalleryContentPreview() {
         userSurname = "Klej",
         onTabClicked = {},
         tabIndex = 1,
-        onSortByClicked = {}
+        onSortByClicked = {},
+        sortByCategory = SortByCategory.ALPHABETICAL
     )
 }
