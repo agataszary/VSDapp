@@ -356,7 +356,7 @@ fun GalleryContent(
                                                         Image(
                                                             imageVector = if (scene.favourite) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                                             contentDescription = "Delete icon",
-                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.light_purple)),
                                                         )
                                                     }
                                                 }
@@ -376,7 +376,7 @@ fun GalleryContent(
                                                         Icon(
                                                             painter = if (scene.markedByTherapist) painterResource(R.drawable.bookmark_filled_48px) else painterResource(R.drawable.bookmark_48px),
                                                             contentDescription = "Delete icon",
-                                                            tint = colorResource(id = R.color.red_x),
+                                                            tint = colorResource(id = R.color.light_purple),
                                                         )
                                                     }
                                                 }
@@ -395,7 +395,7 @@ fun GalleryContent(
                                                         Image(
                                                             imageVector = Icons.Filled.Delete,
                                                             contentDescription = "Delete icon",
-                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.light_purple)),
                                                         )
                                                     }
                                                 }
@@ -414,7 +414,7 @@ fun GalleryContent(
                                                         Image(
                                                             imageVector = Icons.Filled.Share,
                                                             contentDescription = "Delete icon",
-                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.red_x)),
+                                                            colorFilter = ColorFilter.tint(colorResource(id = R.color.light_purple)),
                                                         )
                                                     }
                                                 }
